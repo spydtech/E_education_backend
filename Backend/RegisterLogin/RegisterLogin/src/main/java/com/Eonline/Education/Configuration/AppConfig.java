@@ -72,6 +72,8 @@ public class AppConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(Arrays.asList(
+            "https://api.e-education.in",
+//          "https://accounts.google.com",
             "https://e-education.in",
             "https://*.e-education.in",
             "http://localhost:5173",

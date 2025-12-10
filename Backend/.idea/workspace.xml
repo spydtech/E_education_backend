@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="9d93ec75-e980-4a26-905b-79f7f0acd1b0" name="Changes" comment="payment controller code updated" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CodeInsightWorkspaceSettings">
+    <option name="optimizeImportsOnTheFly" value="true" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Interface" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="ProjectErrors" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 8
+}]]></component>
+  <component name="ProjectId" id="2fBsaeFzM8ItSD9GnBc9VdQGftd" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "Application.com.Eonline.Education.RegisterLoginApplication.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "kotlin-language-version-configured": "true",
+    "last_directory_selection": "C:/Users/GANES/Desktop/ECourse/EonlineCource/Backend/RegisterLogin/RegisterLogin/src/test/java",
+    "last_opened_file_path": "C:/Users/SPY D/OneDrive/Desktop/EonlineCource-main/Backend",
+    "settings.editor.selected.configurable": "reference.settings.project.maven.repository.indices"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="ExtractSuperBase.RECENT_KEYS">
+      <recent name="com.example.RegisterLogin.Configuration" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Application.com.Eonline.Education.RegisterLoginApplication">
+    <configuration name="RegisterLoginApplication" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.example.RegisterLogin.RegisterLoginApplication" />
+      <module name="RegisterLogin" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.example.RegisterLogin.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="com.Eonline.Education.RegisterLoginApplication" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.Eonline.Education.RegisterLoginApplication" />
+      <module name="RegisterLogin" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.Eonline.Education.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.com.Eonline.Education.RegisterLoginApplication" />
+        <item itemvalue="Application.RegisterLoginApplication" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.28238.7" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="9d93ec75-e980-4a26-905b-79f7f0acd1b0" name="Changes" comment="" />
+      <created>1713285869820</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1713285869820</updated>
+    </task>
+    <task id="LOCAL-00001" summary="Razorpay Completed in backend">
+      <created>1713286434429</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1713286434429</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Razorpay Completed in backend">
+      <created>1713286592667</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1713286592667</updated>
+    </task>
+    <task id="LOCAL-00003" summary="account_details added">
+      <created>1714466281385</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1714466281385</updated>
+    </task>
+    <task id="LOCAL-00004" summary="user table changes">
+      <created>1714985916201</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1714985916201</updated>
+    </task>
+    <task id="LOCAL-00005" summary="application properties changed">
+      <created>1714987129906</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1714987129906</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Otp verification">
+      <created>1715342656676</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1715342656676</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Otp verification">
+      <created>1715768503842</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1715768503842</updated>
+    </task>
+    <task id="LOCAL-00008" summary="updated code">
+      <created>1716789198526</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1716789198526</updated>
+    </task>
+    <task id="LOCAL-00009" summary="updated code">
+      <created>1717143375597</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1717143375597</updated>
+    </task>
+    <task id="LOCAL-00010" summary="updated code">
+      <created>1717143489347</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1717143489347</updated>
+    </task>
+    <task id="LOCAL-00011" summary="updated code">
+      <created>1717413851116</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1717413851116</updated>
+    </task>
+    <task id="LOCAL-00012" summary="updated code">
+      <created>1721379405140</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1721379405140</updated>
+    </task>
+    <task id="LOCAL-00013" summary="updated code">
+      <created>1721379470510</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1721379470510</updated>
+    </task>
+    <task id="LOCAL-00014" summary="payment code updated">
+      <created>1721380611062</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1721380611062</updated>
+    </task>
+    <task id="LOCAL-00015" summary="payment controller code updated">
+      <created>1721735709517</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1721735709517</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+    <MESSAGE value="Razorpay Completed in backend" />
+    <MESSAGE value="account_details added" />
+    <MESSAGE value="user table changes" />
+    <MESSAGE value="application properties changed" />
+    <MESSAGE value="Otp verification" />
+    <MESSAGE value="updated code" />
+    <MESSAGE value="payment code updated" />
+    <MESSAGE value="payment controller code updated" />
+    <option name="LAST_COMMIT_MESSAGE" value="payment controller code updated" />
+  </component>
+</project>

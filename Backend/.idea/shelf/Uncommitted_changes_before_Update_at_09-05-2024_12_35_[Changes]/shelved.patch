@@ -1,0 +1,689 @@
+Index: RegisterLogin/RegisterLogin/src/main/java/com/example/RegisterLogin/repository/EmailVerficationRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.RegisterLogin.repository;\r\n\r\nimport com.example.RegisterLogin.modals.EmailVerfication;\r\nimport org.springframework.data.jpa.repository.JpaRepository;\r\nimport org.springframework.stereotype.Repository;\r\n\r\n@Repository\r\npublic interface EmailVerficationRepository extends JpaRepository<EmailVerfication,Long> {\r\n    EmailVerfication findByUserId(Long id);\r\n\r\n    boolean existsByUserId(Long id);\r\n}\r\n
+===================================================================
+diff --git a/RegisterLogin/RegisterLogin/src/main/java/com/example/RegisterLogin/repository/EmailVerficationRepository.java b/RegisterLogin/RegisterLogin/src/main/java/com/example/RegisterLogin/repository/EmailVerficationRepository.java
+--- a/RegisterLogin/RegisterLogin/src/main/java/com/example/RegisterLogin/repository/EmailVerficationRepository.java	
++++ b/RegisterLogin/RegisterLogin/src/main/java/com/example/RegisterLogin/repository/EmailVerficationRepository.java	
+@@ -1,12 +1,13 @@
+ package com.example.RegisterLogin.repository;
+ 
+-import com.example.RegisterLogin.modals.EmailVerfication;
++
++import com.example.RegisterLogin.modals.EmailVerification;
+ import org.springframework.data.jpa.repository.JpaRepository;
+ import org.springframework.stereotype.Repository;
+ 
+ @Repository
+-public interface EmailVerficationRepository extends JpaRepository<EmailVerfication,Long> {
+-    EmailVerfication findByUserId(Long id);
++public interface EmailVerficationRepository extends JpaRepository<EmailVerification,Long> {
++    EmailVerification findByUserId(Long id);
+ 
+     boolean existsByUserId(Long id);
+ }
+Index: RegisterLogin/RegisterLogin/src/main/java/com/example/RegisterLogin/modals/EmailVerfication.java
+===================================================================
+diff --git a/RegisterLogin/RegisterLogin/src/main/java/com/example/RegisterLogin/modals/EmailVerfication.java b/RegisterLogin/RegisterLogin/src/main/java/com/example/RegisterLogin/modals/EmailVerification.java
+rename from RegisterLogin/RegisterLogin/src/main/java/com/example/RegisterLogin/modals/EmailVerfication.java
+rename to RegisterLogin/RegisterLogin/src/main/java/com/example/RegisterLogin/modals/EmailVerification.java
+--- a/RegisterLogin/RegisterLogin/src/main/java/com/example/RegisterLogin/modals/EmailVerfication.java	
++++ b/RegisterLogin/RegisterLogin/src/main/java/com/example/RegisterLogin/modals/EmailVerification.java	
+@@ -9,7 +9,7 @@
+ @AllArgsConstructor
+ @NoArgsConstructor
+ @Entity
+-public class EmailVerfication {
++public class EmailVerification {
+ 
+     @Id
+     @GeneratedValue(strategy = GenerationType.IDENTITY)
+Index: RegisterLogin/RegisterLogin/src/main/java/com/example/RegisterLogin/Service/EmailServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.RegisterLogin.Service;\r\n\r\nimport com.example.RegisterLogin.modals.EmailVerfication;\r\nimport com.example.RegisterLogin.modals.User;\r\nimport com.example.RegisterLogin.repository.EmailVerficationRepository;\r\nimport com.example.RegisterLogin.repository.UserRepository;\r\nimport com.example.RegisterLogin.response.EmailVerficationInput;\r\nimport org.springframework.beans.factory.annotation.Autowired;\r\nimport org.springframework.beans.factory.annotation.Value;\r\nimport org.springframework.mail.SimpleMailMessage;\r\nimport org.springframework.mail.javamail.JavaMailSender;\r\nimport org.springframework.stereotype.Service;\r\n\r\n@Service\r\npublic class EmailServiceImpl implements EmailService {\r\n\r\n    @Autowired\r\n    private UserService userService;\r\n\r\n    @Autowired\r\n    private UserRepository userRepository;\r\n\r\n    @Autowired\r\n    private EmailVerficationRepository emailVerficationRepository;\r\n\r\n    @Autowired\r\n    private JavaMailSender javaMailSender;\r\n\r\n    @Value(\"${spring.mail.username}\") private String sender;\r\n\r\n    // Method 1\r\n    // To send a simple email\r\n    public String sendSimpleMail(String EmailId)\r\n    {\r\n\r\n        // Try block to check for exceptions\r\n        try {\r\n            User CurrentVerficationUser = userRepository.findByEmail(EmailId);\r\n            EmailVerfication verfication = new EmailVerfication();\r\n            int Code =userService.generateSixDigitNumber();\r\n\r\n            if (!emailVerficationRepository.existsByUserId(CurrentVerficationUser.getId())) {\r\n                verfication.setUser(CurrentVerficationUser);\r\n                verfication.setVerificationCode(Code);\r\n                emailVerficationRepository.save(verfication);\r\n            }\r\n            else{\r\n                EmailVerfication verficationExistingId = emailVerficationRepository.findByUserId(CurrentVerficationUser.getId());\r\n                verficationExistingId.setVerificationCode(Code);\r\n                emailVerficationRepository.save(verficationExistingId);\r\n\r\n            }\r\n\r\n            // Creating a simple mail message\r\n            SimpleMailMessage mailMessage\r\n                    = new SimpleMailMessage();\r\n\r\n            // Setting up necessary details\r\n            mailMessage.setFrom(sender);\r\n            mailMessage.setTo(EmailId);\r\n            mailMessage.setText(\"Your Email verification code is \"+Code);\r\n            mailMessage.setSubject(\"Email Verification\");\r\n\r\n            // Sending the mail\r\n            javaMailSender.send(mailMessage);\r\n            return \"Mail Sent Successfully...\";\r\n        }\r\n\r\n        // Catch block to handle the exceptions\r\n        catch (Exception e) {\r\n            return \"Error while Sending Mail\";\r\n        }\r\n    }\r\n\r\n    @Override\r\n    public String verifyingCode(String emailId, EmailVerficationInput emailVerficationInput) {\r\n        User verifyUser = userRepository.findByEmail(emailId);\r\n        EmailVerfication verifyEmail =emailVerficationRepository.findByUserId(verifyUser.getId());\r\n        int currentCode =verifyEmail.getVerificationCode();\r\n        if(( emailVerficationInput.getVerificationCode() == currentCode))\r\n        {\r\n\r\n            return \"verification successful\";\r\n        }\r\n        else  {\r\n            return \"incorrect verification code\";\r\n        }\r\n\r\n\r\n    }\r\n\r\n\r\n}\r\n
+===================================================================
+diff --git a/RegisterLogin/RegisterLogin/src/main/java/com/example/RegisterLogin/Service/EmailServiceImpl.java b/RegisterLogin/RegisterLogin/src/main/java/com/example/RegisterLogin/Service/EmailServiceImpl.java
+--- a/RegisterLogin/RegisterLogin/src/main/java/com/example/RegisterLogin/Service/EmailServiceImpl.java	
++++ b/RegisterLogin/RegisterLogin/src/main/java/com/example/RegisterLogin/Service/EmailServiceImpl.java	
+@@ -1,6 +1,6 @@
+ package com.example.RegisterLogin.Service;
+ 
+-import com.example.RegisterLogin.modals.EmailVerfication;
++import com.example.RegisterLogin.modals.EmailVerification;
+ import com.example.RegisterLogin.modals.User;
+ import com.example.RegisterLogin.repository.EmailVerficationRepository;
+ import com.example.RegisterLogin.repository.UserRepository;
+@@ -21,7 +21,7 @@
+     private UserRepository userRepository;
+ 
+     @Autowired
+-    private EmailVerficationRepository emailVerficationRepository;
++    private EmailVerficationRepository emailVerificationRepository;
+ 
+     @Autowired
+     private JavaMailSender javaMailSender;
+@@ -36,18 +36,18 @@
+         // Try block to check for exceptions
+         try {
+             User CurrentVerficationUser = userRepository.findByEmail(EmailId);
+-            EmailVerfication verfication = new EmailVerfication();
++            EmailVerification verfication = new EmailVerification();
+             int Code =userService.generateSixDigitNumber();
+ 
+-            if (!emailVerficationRepository.existsByUserId(CurrentVerficationUser.getId())) {
++            if (!emailVerificationRepository.existsByUserId(CurrentVerficationUser.getId())) {
+                 verfication.setUser(CurrentVerficationUser);
+                 verfication.setVerificationCode(Code);
+-                emailVerficationRepository.save(verfication);
++                emailVerificationRepository.save(verfication);
+             }
+             else{
+-                EmailVerfication verficationExistingId = emailVerficationRepository.findByUserId(CurrentVerficationUser.getId());
++                EmailVerification verficationExistingId = emailVerificationRepository.findByUserId(CurrentVerficationUser.getId());
+                 verficationExistingId.setVerificationCode(Code);
+-                emailVerficationRepository.save(verficationExistingId);
++                emailVerificationRepository.save(verficationExistingId);
+ 
+             }
+ 
+@@ -75,7 +75,7 @@
+     @Override
+     public String verifyingCode(String emailId, EmailVerficationInput emailVerficationInput) {
+         User verifyUser = userRepository.findByEmail(emailId);
+-        EmailVerfication verifyEmail =emailVerficationRepository.findByUserId(verifyUser.getId());
++        EmailVerification verifyEmail =emailVerificationRepository.findByUserId(verifyUser.getId());
+         int currentCode =verifyEmail.getVerificationCode();
+         if(( emailVerficationInput.getVerificationCode() == currentCode))
+         {
+Index: RegisterLogin/RegisterLogin/src/main/java/com/example/RegisterLogin/modals/User.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.RegisterLogin.modals;\r\n\r\n\r\n\r\nimport com.fasterxml.jackson.annotation.JsonIgnore;\r\nimport jakarta.persistence.*;\r\nimport lombok.AllArgsConstructor;\r\nimport lombok.Data;\r\nimport lombok.NoArgsConstructor;\r\n\r\nimport java.time.LocalDateTime;\r\nimport java.util.Date;\r\n\r\n@Data\r\n@AllArgsConstructor\r\n@NoArgsConstructor\r\n@Entity\r\n@Table(name=\"users\")\r\npublic class User {\r\n\r\n\t@Id\r\n\t@GeneratedValue(strategy = GenerationType.IDENTITY)\r\n\tprivate Long id;\r\n\r\n\t@Column(name = \"user_Name\")\r\n\tprivate String userName;\r\n\r\n\t@Column(name = \"password\")\r\n\tprivate String password;\r\n\r\n\t@Column(name = \"email\")\r\n\tprivate String email;\r\n\r\n\t@Column(name = \"created_at\")\r\n\tprivate Date createdAt;\r\n\r\n\r\n\t@OneToOne(mappedBy = \"user\", cascade = CascadeType.ALL)\r\n\t@JsonIgnore\r\n\tprivate Account account;\r\n\r\n\t@OneToOne(mappedBy = \"user\", cascade = CascadeType.ALL)\r\n\t@JsonIgnore\r\n\tprivate EmailVerfication emailVerfication;\r\n\r\n\r\n\r\n}\r\n
+===================================================================
+diff --git a/RegisterLogin/RegisterLogin/src/main/java/com/example/RegisterLogin/modals/User.java b/RegisterLogin/RegisterLogin/src/main/java/com/example/RegisterLogin/modals/User.java
+--- a/RegisterLogin/RegisterLogin/src/main/java/com/example/RegisterLogin/modals/User.java	
++++ b/RegisterLogin/RegisterLogin/src/main/java/com/example/RegisterLogin/modals/User.java	
+@@ -1,14 +1,12 @@
+ package com.example.RegisterLogin.modals;
+ 
+ 
+-
+ import com.fasterxml.jackson.annotation.JsonIgnore;
+ import jakarta.persistence.*;
+ import lombok.AllArgsConstructor;
+ import lombok.Data;
+ import lombok.NoArgsConstructor;
+ 
+-import java.time.LocalDateTime;
+ import java.util.Date;
+ 
+ @Data
+@@ -41,7 +39,7 @@
+ 
+ 	@OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+ 	@JsonIgnore
+-	private EmailVerfication emailVerfication;
++	private EmailVerification emailVerfication;
+ 
+ 
+ 
+Index: ../src/Components/Login/SignUp.jsx
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>\r\nimport React, { useEffect } from 'react';\r\nimport { useNavigate } from 'react-router-dom';\r\nimport Navbar from '../Navbar';\r\nimport { useDispatch, useSelector } from 'react-redux';\r\nimport { getUser, register } from '../../State/Auth/Action';\r\nimport student from \"../../assets/singup1.svg\";\r\nimport IMG from \"../../assets/E- education logo .png\";\r\n\r\n\r\nfunction SignUp() {\r\n\r\n\r\n  const navigate = useNavigate();\r\n  const dispatch = useDispatch();\r\n  const jwt = localStorage.getItem('jwt');\r\n  const { auth } = useSelector(store => store);\r\n\r\n  useEffect(() => {\r\n    if (jwt) {\r\n      dispatch(getUser(jwt));\r\n    }\r\n  }, [jwt, auth.jwt]);\r\n\r\n  const handleSubmit = async (e) => {\r\n    e.preventDefault();\r\n    const data = new FormData(e.currentTarget);\r\n    const userData = {\r\n      firstName: data.get('firstName'),\r\n      lastName: data.get('lastName'),\r\n      email: data.get('email'),\r\n      password: data.get('password'),\r\n\r\n    };\r\n    navigate(\"/\")\r\n    console.log('user data', userData);\r\n    dispatch(register(userData));\r\n  };\r\n\r\n  return (\r\n    <>\r\n      <Navbar />\r\n      <div className=\"grid  grid-cols-1 md:grid-cols-2 font-poppins min-w-screen min-h-screen dark:bg-gray-900\">\r\n        <div className=\" py-2   flex justify-center \">\r\n          <img\r\n            src={student}\r\n            className=\" md:w-auto md:h-auto lg:w-auto lg:h-auto w-96 h-96\"\r\n            alt=\"Student\"\r\n          />\r\n        </div>\r\n\r\n        <div className=\"flex justify-center \">\r\n          <div className=\"max-w-md  \">\r\n            {/*  */}\r\n            <div id=\"back-div\" className=\" rounded-lg \">\r\n              <div className=\"bg-white  border-[20px] border-transparent rounded-[20px] dark:bg-gray-900  shadow-lg xl:p-10 2xl:p-10 lg:px-10 lg:py-0  md:p-10 sm:p-0 \">\r\n                <div className=\" \">\r\n                  <img src={IMG} className=\"w-56 mx-auto \" alt=\"Logo\" />\r\n                </div>\r\n                <h1 className=\"font-Calistoga  pb-6 text-violet-600  text-4xl dark:text-gray-400 text-center cursor-default\">\r\n                  Sign Up\r\n                </h1>\r\n                <form\r\n                  onSubmit={handleSubmit}\r\n                  action=\"#\"\r\n                  method=\"post\"\r\n                  className=\"space-y-4\"\r\n                >\r\n                  <div>\r\n                    <label\r\n                      htmlFor='name'\r\n                      className='mb-2 dark:text-gray-400 text-lg'\r\n                    >\r\n                      First Name\r\n                    </label>\r\n                    <input\r\n                      id='firstName'\r\n                      className='border dark:bg-indigo-700 dark:text-gray-300 dark:border-gray-700 p-3 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full focus:scale-105 ease-in-out duration-300'\r\n                      name='firstName'\r\n                      label='First name'\r\n                      placeholder='firstName'\r\n                      required\r\n                    />\r\n                  </div>\r\n                  <div>\r\n                    <label\r\n                      htmlFor='name'\r\n                      className='mb-2 dark:text-gray-400 text-lg'\r\n                    >\r\n                      Last Name\r\n                    </label>\r\n                    <input\r\n                      id='lastName'\r\n                      className='border dark:bg-indigo-700 dark:text-gray-300 dark:border-gray-700 p-3 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full focus:scale-105 ease-in-out duration-300'\r\n                      name='lastName'\r\n                      label='Last name'\r\n                      placeholder='lastName'\r\n                      required\r\n                    />\r\n                  </div>\r\n                  <div>\r\n                    <label\r\n                      htmlFor='name'\r\n                      className='mb-2 dark:text-gray-400 text-lg'\r\n                    >\r\n                      Email\r\n                    </label>\r\n                    <input\r\n                      id='email'\r\n                      className='border dark:bg-indigo-700 dark:text-gray-300 dark:border-gray-700 p-3 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full focus:scale-105 ease-in-out duration-300'\r\n                      name='email'\r\n                      label='Email'\r\n                      placeholder='Email'\r\n                      required\r\n                    />\r\n                  </div>\r\n                  <div>\r\n                    <label\r\n                      htmlFor='name'\r\n                      className='mb-2 dark:text-gray-400 text-lg'\r\n                    >\r\n                      Password\r\n                    </label>\r\n                    <input\r\n                      id='password'\r\n                      className='border dark:bg-indigo-700 dark:text-gray-300 dark:border-gray-700 p-3 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full focus:scale-105 ease-in-out duration-300'\r\n                      name='password'\r\n                      label='Password'\r\n                      placeholder='password'\r\n                      type=\"password\"\r\n                      required\r\n                    />\r\n                  </div>\r\n                  <button\r\n                    className=\"font-Calistoga bg-gradient-to-r from-blue-500 to-purple-500 shadow-lg mt-6 p-2 text-white rounded-lg w-full hover:scale-105 hover:from-purple-500 hover:to-blue-500 transition duration-300 ease-in-out\"\r\n                    type=\"submit\"\r\n                  >\r\n                    Sign Up\r\n                  </button>\r\n                </form>\r\n                <div className=\"flex flex-col mt-4 items-center justify-center text-sm\">\r\n                  <h3>\r\n                    <span className=\"cursor-default dark:text-gray-300\">\r\n                      Have an account?\r\n                    </span>\r\n                    <a\r\n                      className=\"group text-blue-400 transition-all duration-100 ease-in-out\"\r\n                      href=\"/Login\"\r\n                    >\r\n                      <span className=\"bg-left-bottom ml-1 bg-gradient-to-r from-blue-400 to-blue-400 bg-[length:0%_2px] bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500 ease-out\">\r\n                        Log In\r\n                      </span>\r\n                    </a>\r\n                  </h3>\r\n                </div>\r\n\r\n                <div\r\n                  id=\"third-party-auth\"\r\n                  className=\"flex items-center justify-center mt-5 flex-wrap\"\r\n                >\r\n                  <button\r\n                    href=\"#\"\r\n                    className=\"hover:scale-105 ease-in-out duration-300 shadow-lg p-2 rounded-lg m-1\"\r\n                  >\r\n                    <img\r\n                      className=\"max-w-[25px]\"\r\n                      src=\"https://ucarecdn.com/8f25a2ba-bdcf-4ff1-b596-088f330416ef/\"\r\n                      alt=\"Google\"\r\n                    />\r\n                  </button>\r\n                </div>\r\n\r\n                <div className=\"text-gray-500 flex text-center flex-col mt-4 items-center text-sm\">\r\n                  <p className=\"cursor-default\">\r\n                    By signing in, you agree to our\r\n                    <a\r\n                      className=\"group text-blue-400 transition-all duration-100 ease-in-out\"\r\n                      href=\"#\"\r\n                    >\r\n                      <span className=\"mx-1 cursor-pointer bg-left-bottom bg-gradient-to-r from-blue-400 to-blue-400 bg-[length:0%_2px] bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500 ease-out\">\r\n                        Terms\r\n                      </span>\r\n                    </a>\r\n                    and\r\n                    <a\r\n                      className=\"group text-blue-400 transition-all duration-100 ease-in-out\"\r\n                      href=\"#\"\r\n                    >\r\n                      <span className=\"ml-1 cursor-pointer bg-left-bottom bg-gradient-to-r from-blue-400 to-blue-400 bg-[length:0%_2px] bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500 ease-out\">\r\n                        Privacy Policy\r\n                      </span>\r\n                    </a>\r\n                  </p>\r\n                </div>\r\n              </div>\r\n            </div>\r\n            {/* end */}\r\n          </div>\r\n        </div>\r\n      </div>\r\n    </>\r\n  );\r\n}\r\n\r\nexport default SignUp;\r\n
+===================================================================
+diff --git a/../src/Components/Login/SignUp.jsx b/../src/Components/Login/SignUp.jsx
+--- a/../src/Components/Login/SignUp.jsx	
++++ b/../src/Components/Login/SignUp.jsx	
+@@ -1,20 +1,233 @@
++/* eslint-disable jsx-a11y/anchor-is-valid */
++
++// import React, { useEffect } from 'react';
++// import { useNavigate } from 'react-router-dom';
++// import Navbar from '../Navbar';
++// import { useDispatch, useSelector } from 'react-redux';
++// import { getUser, register } from '../../State/Auth/Action';
++// import student from "../../assets/singup1.svg";
++// import IMG from "../../assets/E- education logo .png";
++
++
++// function SignUp() {
++
++
++//   const navigate = useNavigate();
++//   const dispatch = useDispatch();
++//   const jwt = localStorage.getItem('jwt');
++//   const { auth } = useSelector(store => store);
++
++//   useEffect(() => {
++//     if (jwt) {
++//       dispatch(getUser(jwt));
++//     }
++//   }, [jwt, auth.jwt]);
++
++//   const handleSubmit = async (e) => {
++//     e.preventDefault();
++//     const data = new FormData(e.currentTarget);
++//     const userData = {
++//       firstName: data.get('firstName'),
++//       lastName: data.get('lastName'),
++//       email: data.get('email'),
++//       password: data.get('password'),
+ 
+-import React, { useEffect } from 'react';
++//     };
++//     navigate("/")
++//     console.log('user data', userData);
++//     dispatch(register(userData));
++//   };
++
++//   return (
++//     <>
++//       <Navbar />
++//       <div className="grid  grid-cols-1 md:grid-cols-2 font-poppins min-w-screen min-h-screen dark:bg-gray-900">
++//         <div className=" py-2   flex justify-center ">
++//           <img
++//             src={student}
++//             className=" md:w-auto md:h-auto lg:w-auto lg:h-auto w-96 h-96"
++//             alt="Student"
++//           />
++//         </div>
++
++//         <div className="flex justify-center ">
++//           <div className="max-w-md  ">
++//             {/*  */}
++//             <div id="back-div" className=" rounded-lg ">
++//               <div className="bg-white  border-[20px] border-transparent rounded-[20px] dark:bg-gray-900  shadow-lg xl:p-10 2xl:p-10 lg:px-10 lg:py-0  md:p-10 sm:p-0 ">
++//                 <div className=" ">
++//                   <img src={IMG} className="w-56 mx-auto " alt="Logo" />
++//                 </div>
++//                 <h1 className="font-Calistoga  pb-6 text-violet-600  text-4xl dark:text-gray-400 text-center cursor-default">
++//                   Sign Up
++//                 </h1>
++//                 <form
++//                   onSubmit={handleSubmit}
++//                   action="#"
++//                   method="post"
++//                   className="space-y-4"
++//                 >
++//                   <div>
++//                     <label
++//                       htmlFor='name'
++//                       className='mb-2 dark:text-gray-400 text-lg'
++//                     >
++//                       First Name
++//                     </label>
++//                     <input
++//                       id='firstName'
++//                       className='border dark:bg-indigo-700 dark:text-gray-300 dark:border-gray-700 p-3 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full focus:scale-105 ease-in-out duration-300'
++//                       name='firstName'
++//                       label='First name'
++//                       placeholder='firstName'
++//                       required
++//                     />
++//                   </div>
++//                   <div>
++//                     <label
++//                       htmlFor='name'
++//                       className='mb-2 dark:text-gray-400 text-lg'
++//                     >
++//                       Last Name
++//                     </label>
++//                     <input
++//                       id='lastName'
++//                       className='border dark:bg-indigo-700 dark:text-gray-300 dark:border-gray-700 p-3 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full focus:scale-105 ease-in-out duration-300'
++//                       name='lastName'
++//                       label='Last name'
++//                       placeholder='lastName'
++//                       required
++//                     />
++//                   </div>
++//                   <div>
++//                     <label
++//                       htmlFor='name'
++//                       className='mb-2 dark:text-gray-400 text-lg'
++//                     >
++//                       Email
++//                     </label>
++//                     <input
++//                       id='email'
++//                       className='border dark:bg-indigo-700 dark:text-gray-300 dark:border-gray-700 p-3 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full focus:scale-105 ease-in-out duration-300'
++//                       name='email'
++//                       label='Email'
++//                       placeholder='Email'
++//                       required
++//                     />
++//                   </div>
++//                   <div>
++//                     <label
++//                       htmlFor='name'
++//                       className='mb-2 dark:text-gray-400 text-lg'
++//                     >
++//                       Password
++//                     </label>
++//                     <input
++//                       id='password'
++//                       className='border dark:bg-indigo-700 dark:text-gray-300 dark:border-gray-700 p-3 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full focus:scale-105 ease-in-out duration-300'
++//                       name='password'
++//                       label='Password'
++//                       placeholder='password'
++//                       type="password"
++//                       required
++//                     />
++//                   </div>
++//                   <button
++//                     className="font-Calistoga bg-gradient-to-r from-blue-500 to-purple-500 shadow-lg mt-6 p-2 text-white rounded-lg w-full hover:scale-105 hover:from-purple-500 hover:to-blue-500 transition duration-300 ease-in-out"
++//                     type="submit"
++//                   >
++//                     Sign Up
++//                   </button>
++//                 </form>
++//                 <div className="flex flex-col mt-4 items-center justify-center text-sm">
++//                   <h3>
++//                     <span className="cursor-default dark:text-gray-300">
++//                       Have an account?
++//                     </span>
++//                     <a
++//                       className="group text-blue-400 transition-all duration-100 ease-in-out"
++//                       href="/Login"
++//                     >
++//                       <span className="bg-left-bottom ml-1 bg-gradient-to-r from-blue-400 to-blue-400 bg-[length:0%_2px] bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500 ease-out">
++//                         Log In
++//                       </span>
++//                     </a>
++//                   </h3>
++//                 </div>
++
++//                 <div
++//                   id="third-party-auth"
++//                   className="flex items-center justify-center mt-5 flex-wrap"
++//                 >
++//                   <button
++//                     href="#"
++//                     className="hover:scale-105 ease-in-out duration-300 shadow-lg p-2 rounded-lg m-1"
++//                   >
++//                     <img
++//                       className="max-w-[25px]"
++//                       src="https://ucarecdn.com/8f25a2ba-bdcf-4ff1-b596-088f330416ef/"
++//                       alt="Google"
++//                     />
++//                   </button>
++//                 </div>
++
++//                 <div className="text-gray-500 flex text-center flex-col mt-4 items-center text-sm">
++//                   <p className="cursor-default">
++//                     By signing in, you agree to our
++//                     <a
++//                       className="group text-blue-400 transition-all duration-100 ease-in-out"
++//                       href="#"
++//                     >
++//                       <span className="mx-1 cursor-pointer bg-left-bottom bg-gradient-to-r from-blue-400 to-blue-400 bg-[length:0%_2px] bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500 ease-out">
++//                         Terms
++//                       </span>
++//                     </a>
++//                     and
++//                     <a
++//                       className="group text-blue-400 transition-all duration-100 ease-in-out"
++//                       href="#"
++//                     >
++//                       <span className="ml-1 cursor-pointer bg-left-bottom bg-gradient-to-r from-blue-400 to-blue-400 bg-[length:0%_2px] bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500 ease-out">
++//                         Privacy Policy
++//                       </span>
++//                     </a>
++//                   </p>
++//                 </div>
++//               </div>
++//             </div>
++//             {/* end */}
++//           </div>
++//         </div>
++//       </div>
++//     </>
++//   );
++// }
++
++// export default SignUp;
++
++
++
++import React, { useEffect, useState } from 'react';
+ import { useNavigate } from 'react-router-dom';
+ import Navbar from '../Navbar';
+ import { useDispatch, useSelector } from 'react-redux';
+-import { getUser, register } from '../../State/Auth/Action';
++import { getUser, register, sendOtp, verifyOtp } from '../../State/Auth/Action'; // Import sendOtp and verifyOtp actions
+ import student from "../../assets/singup1.svg";
+ import IMG from "../../assets/E- education logo .png";
+ 
+-
+ function SignUp() {
+-
+-
+   const navigate = useNavigate();
+   const dispatch = useDispatch();
+   const jwt = localStorage.getItem('jwt');
+-  const { auth } = useSelector(store => store);
++  const { auth, otpStatus } = useSelector(store => store);
++  const [showOtpPopup, setShowOtpPopup] = useState(true);
++  const [formData, setFormData] = useState({
++    firstName: '',
++    lastName: '',
++    email: '',
++    password: ''
++  });
++  const [otp, setOtp] = useState('');
+ 
+   useEffect(() => {
+     if (jwt) {
+@@ -22,36 +235,34 @@
+     }
+   }, [jwt, auth.jwt]);
+ 
++  const handleChange = (e) => {
++    setFormData({ ...formData, [e.target.name]: e.target.value });
++  };
++
++  const handleSendOtp = () => {
++    dispatch(sendOtp(formData.email));// Dispatch sendOtp action with email
++    setShowOtpPopup(true);
++  };
++
++  const handleVerifyOtp = () => {
++    dispatch(verifyOtp(formData.email, otp));// Dispatch verifyOtp action with email and otp
++    setShowOtpPopup(false);
++    handleSubmit();
++  };
++
+   const handleSubmit = async (e) => {
+     e.preventDefault();
+-    const data = new FormData(e.currentTarget);
+-    const userData = {
+-      firstName: data.get('firstName'),
+-      lastName: data.get('lastName'),
+-      email: data.get('email'),
+-      password: data.get('password'),
+-
+-    };
+-    navigate("/")
+-    console.log('user data', userData);
+-    dispatch(register(userData));
++    // Dispatch the register action with form data
++    dispatch(register(formData));
++    navigate("/login"); // Navigate to login page after registration
+   };
+ 
+   return (
+     <>
+       <Navbar />
+       <div className="grid  grid-cols-1 md:grid-cols-2 font-poppins min-w-screen min-h-screen dark:bg-gray-900">
+-        <div className=" py-2   flex justify-center ">
+-          <img
+-            src={student}
+-            className=" md:w-auto md:h-auto lg:w-auto lg:h-auto w-96 h-96"
+-            alt="Student"
+-          />
+-        </div>
+-
+         <div className="flex justify-center ">
+           <div className="max-w-md  ">
+-            {/*  */}
+             <div id="back-div" className=" rounded-lg ">
+               <div className="bg-white  border-[20px] border-transparent rounded-[20px] dark:bg-gray-900  shadow-lg xl:p-10 2xl:p-10 lg:px-10 lg:py-0  md:p-10 sm:p-0 ">
+                 <div className=" ">
+@@ -61,7 +272,10 @@
+                   Sign Up
+                 </h1>
+                 <form
+-                  onSubmit={handleSubmit}
++                  onSubmit={(e) => {
++                    e.preventDefault();
++                    handleSendOtp();
++                  }}
+                   action="#"
+                   method="post"
+                   className="space-y-4"
+@@ -71,31 +285,16 @@
+                       htmlFor='name'
+                       className='mb-2 dark:text-gray-400 text-lg'
+                     >
+-                      First Name
+-                    </label>
+-                    <input
+-                      id='firstName'
+-                      className='border dark:bg-indigo-700 dark:text-gray-300 dark:border-gray-700 p-3 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full focus:scale-105 ease-in-out duration-300'
+-                      name='firstName'
+-                      label='First name'
+-                      placeholder='firstName'
+-                      required
+-                    />
+-                  </div>
+-                  <div>
+-                    <label
+-                      htmlFor='name'
+-                      className='mb-2 dark:text-gray-400 text-lg'
+-                    >
+-                      Last Name
++                      User Name
+                     </label>
+                     <input
+-                      id='lastName'
++                      id='userName'
+                       className='border dark:bg-indigo-700 dark:text-gray-300 dark:border-gray-700 p-3 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full focus:scale-105 ease-in-out duration-300'
+-                      name='lastName'
+-                      label='Last name'
+-                      placeholder='lastName'
++                      name='userName'
++                      label='UserName'
++                      placeholder='User'
+                       required
++                      onChange={handleChange}
+                     />
+                   </div>
+                   <div>
+@@ -112,6 +311,7 @@
+                       label='Email'
+                       placeholder='Email'
+                       required
++                      onChange={handleChange}
+                     />
+                   </div>
+                   <div>
+@@ -129,14 +329,16 @@
+                       placeholder='password'
+                       type="password"
+                       required
++                      onChange={handleChange}
+                     />
+                   </div>
+                   <button
+                     className="font-Calistoga bg-gradient-to-r from-blue-500 to-purple-500 shadow-lg mt-6 p-2 text-white rounded-lg w-full hover:scale-105 hover:from-purple-500 hover:to-blue-500 transition duration-300 ease-in-out"
+                     type="submit"
+                   >
+-                    Sign Up
++                    Send OTP
+                   </button>
++
+                 </form>
+                 <div className="flex flex-col mt-4 items-center justify-center text-sm">
+                   <h3>
+@@ -153,15 +355,14 @@
+                     </a>
+                   </h3>
+                 </div>
+-
++                {/* Add OTP input and buttons */}
+                 <div
+                   id="third-party-auth"
+                   className="flex items-center justify-center mt-5 flex-wrap"
+-                >
+-                  <button
+-                    href="#"
+-                    className="hover:scale-105 ease-in-out duration-300 shadow-lg p-2 rounded-lg m-1"
+-                  >
++                ><button
++                  href="#"
++                  className="hover:scale-105 ease-in-out duration-300 shadow-lg p-2 rounded-lg m-1"
++                >
+                     <img
+                       className="max-w-[25px]"
+                       src="https://ucarecdn.com/8f25a2ba-bdcf-4ff1-b596-088f330416ef/"
+@@ -169,7 +370,6 @@
+                     />
+                   </button>
+                 </div>
+-
+                 <div className="text-gray-500 flex text-center flex-col mt-4 items-center text-sm">
+                   <p className="cursor-default">
+                     By signing in, you agree to our
+@@ -192,9 +392,27 @@
+                     </a>
+                   </p>
+                 </div>
++                <div className="flex justify-center mt-4">
++                  {otpStatus === 'sent' && showOtpPopup(
++                    <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
++                      <div className="bg-white p-8 max-w-md rounded-lg shadow-lg">
++                        <h2 className="text-2xl font-semibold mb-4">Enter OTP</h2>
++                        <input
++                          type="text"
++                          value={otp}
++                          onChange={(e) => setOtp(e.target.value)}
++                          placeholder="Enter OTP"
++                          className="border border-gray-300 rounded-lg p-2 mb-4 w-full"
++                        />
++                        <button onClick={handleVerifyOtp}
++                          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">Verify OTP</button>
++                      </div>
++
++                    </div>
++                  )}
++                </div>
+               </div>
+             </div>
+-            {/* end */}
+           </div>
+         </div>
+       </div>
+Index: ../src/State/Auth/ActionType.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>export const REGISTER_REQUEST = 'REGISTER_REQUEST';\r\nexport const REGISTER_SUCCESS = 'REGISTER_SUCCESS';\r\nexport const REGISTER_FAILURE = 'REGISTER_FAILURE';\r\n\r\nexport const LOGIN_REQUEST = 'LOGIN_REQUEST';\r\nexport const LOGIN_SUCCESS = 'LOGIN_SUCCESS';\r\nexport const LOGIN_FAILURE = 'LOGIN_FAILURE';\r\n\r\nexport const GET_USER_REQUEST = \"GET_USER_REQUEST\";\r\nexport const GET_USER_SUCCESS = \"GET_USER_SUCCESS\";\r\nexport const GET_USER_FAILURE = \"GET_USER_FAILURE\";\r\n\r\nexport const GET_ACCOUNT_REQUEST = \"GET_ACCOUNT_REQUEST\";\r\nexport const GET_ACCOUNT_SUCCESS = \"GET_ACCOUNT_SUCCESS\";\r\nexport const GET_ACCOUNT_FAILURE = \"GET_ACCOUNT_FAILURE\";\r\n\r\nexport const UPDATE_ACCOUNT_REQUEST = \"UPDATE_ACCOUNT_REQUEST\";\r\nexport const UPDATE_ACCOUNT_SUCCESS = \"UPDATE_ACCOUNT_SUCCESS\";\r\nexport const UPDATE_ACCOUNT_FAILURE = \"UPDATE_ACCOUNT_FAILURE\";\r\n\r\n\r\nexport const LOGOUT = \"LOGOUT\";
+===================================================================
+diff --git a/../src/State/Auth/ActionType.js b/../src/State/Auth/ActionType.js
+--- a/../src/State/Auth/ActionType.js	
++++ b/../src/State/Auth/ActionType.js	
+@@ -18,5 +18,13 @@
+ export const UPDATE_ACCOUNT_SUCCESS = "UPDATE_ACCOUNT_SUCCESS";
+ export const UPDATE_ACCOUNT_FAILURE = "UPDATE_ACCOUNT_FAILURE";
+ 
++export const SEND_OTP_REQUEST = 'SEND_OTP_REQUEST';
++export const SEND_OTP_SUCCESS = 'SEND_OTP_SUCCESS';
++export const SEND_OTP_FAILURE = 'SEND_OTP_FAILURE';
++
++export const VERIFY_OTP_REQUEST = 'VERIFY_OTP_REQUEST';
++export const VERIFY_OTP_SUCCESS = 'VERIFY_OTP_SUCCESS';
++export const VERIFY_OTP_FAILURE = 'VERIFY_OTP_FAILURE';
++
+ 
+ export const LOGOUT = "LOGOUT";
+\ No newline at end of file
+Index: ../src/Components/Navbar.jsx
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import { Fragment, useRef, useEffect } from 'react';\r\nimport React, { useState } from 'react';\r\nimport { Disclosure, Menu } from '@headlessui/react';\r\nimport { FaBars } from 'react-icons/fa';\r\nimport { IoCloseSharp } from 'react-icons/io5';\r\nimport IMG from '../assets/E- education logo .png';\r\nimport { Link, useNavigate } from 'react-router-dom';\r\nimport { useDispatch, useSelector } from 'react-redux';\r\nimport { getUser, logout } from '../State/Auth/Action';\r\n\r\nconst Navbar = () => {\r\n  const [navigationMenu, setNavigationMenu] = useState(null);\r\n  const [navigationMenuOpen, setNavigationMenuOpen] = useState(false);\r\n  const navigationRef = useRef(null); // Initialize navigationRef with useRef\r\n  const navigate = useNavigate();\r\n  const jwt = localStorage.getItem('jwt');\r\n  const { auth } = useSelector((store) => store);\r\n  const dispatch = useDispatch();\r\n\r\n  const navigation = [{ name: 'Explore', href: '/Explore', current: false }];\r\n  if (auth.user) {\r\n    navigation.push({ name: 'My Learning', href: '/mylearning', current: false },\r\n      { name: 'Course', href: '/Mycourse', current: false },\r\n      { name: 'About US', href: '/Aboutus', current: false });\r\n  }\r\n\r\n\r\n  function classNames(...classes) {\r\n    return classes.filter(Boolean).join(' ');\r\n  }\r\n\r\n  const handleLogout = () => {\r\n    dispatch(logout());\r\n    localStorage.removeItem('jwt');\r\n    navigate('/');\r\n  };\r\n\r\n  useEffect(() => {\r\n    if (jwt) {\r\n      dispatch(getUser(jwt));\r\n    }\r\n  }, [jwt, auth.jwt, dispatch]);\r\n\r\n  const toggleNavigationMenu = (menuName) => {\r\n    if (navigationMenuOpen && navigationMenu === menuName) {\r\n      setNavigationMenuOpen(false);\r\n      setNavigationMenu(null);\r\n    } else {\r\n      setNavigationMenuOpen(true);\r\n      setNavigationMenu(menuName);\r\n    }\r\n  };\r\n\r\n  const handleOutsideClick = (event) => {\r\n    if (\r\n      navigationRef.current &&\r\n      !navigationRef.current.contains(event.target)\r\n    ) {\r\n      setNavigationMenuOpen(false);\r\n      setNavigationMenu(null);\r\n    }\r\n  };\r\n\r\n  useEffect(() => {\r\n    document.addEventListener('mousedown', handleOutsideClick);\r\n    return () => {\r\n      document.removeEventListener('mousedown', handleOutsideClick);\r\n    };\r\n  }, []);\r\n\r\n  return (\r\n    <Disclosure as='nav' className='bg-[#0077b6] sticky top-0 z-50'>\r\n      {({ open }) => (\r\n        <>\r\n          <div className='mx-auto max-w-7xl px-2 sm:px-6 lg:px-8'>\r\n            <div className='relative flex h-16 items-center justify-between'>\r\n              <div className='absolute inset-y-0 left-0 flex items-center sm:hidden'>\r\n                <Disclosure.Button className='relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white'>\r\n                  <span className='absolute -inset-0.5' />\r\n                  <span className='sr-only'>Open main menu</span>\r\n                  {open ? (\r\n                    <IoCloseSharp className='block h-6 w-6' aria-hidden='true' />\r\n                  ) : (\r\n                    <FaBars className='block h-6 w-6' aria-hidden='true' />\r\n                  )}\r\n                </Disclosure.Button>\r\n              </div>\r\n              <div className='flex flex-1 items-center justify-between sm:justify-start'>\r\n                <div className='flex flex-shrink-0 items-center'>\r\n                  <Link to='/'>\r\n                    <img\r\n                      className='h-14 cursor-pointer'\r\n                      src={IMG}\r\n                      alt='Your Company'\r\n                    />\r\n                  </Link>\r\n                </div>\r\n                {/* Navigation Links */}\r\n                <div className='flex space-x-4'>\r\n                  {navigation.map((item) => (\r\n                    <a\r\n                      key={item.name}\r\n                      href={item.href}\r\n                      className={classNames(\r\n                        item.current\r\n                          ? 'bg-gray-900 text-white'\r\n                          : 'text-gray-300 hover:bg-gray-700 hover:text-white',\r\n                        'rounded-md px-3 py-2 mt-2 text-sm font-medium ml-4 mb-2'\r\n                      )}\r\n                      aria-current={item.current ? 'page' : undefined}\r\n                    >\r\n                      {item.name}\r\n                    </a>\r\n                  ))}\r\n                </div>\r\n              </div>\r\n\r\n              {/* User Initials */}\r\n              {auth.user && (\r\n\r\n                <div className='flex items-center'>\r\n                  {/* Feeds */}\r\n                  <Link to='/feeds' className='text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-\r\n3 py-2 mt-2 text-sm font-medium ml-4 mb-2'>Feeds</Link>\r\n                  {/* Ask Me Later */}\r\n                  <Link to='/ask-me-later' className='text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 mt-2 text-sm font-medium ml-4 mb-2'>\r\n                    Ask Me Later\r\n                  </Link>\r\n                  {/* Dropdown menu */}\r\n                  <div className='relative inline-block'>\r\n                    {/* Dropdown button */}\r\n                    <button\r\n                      className={`inline-flex items-center justify-center h-14 px-4 py-2 text-sm font-medium transition-colors rounded-md ${navigationMenu === 'getting-started' ? 'border-2 border-black' : ''} ${navigationMenu !== 'getting-started' ? '' : ''}`}\r\n                      onClick={() => toggleNavigationMenu('getting-started')}\r\n                    >\r\n                      {/* User initials */}\r\n                      <span className='p-3 w-12 rounded-full bg-blue-400 text-white font-bold text-center cursor-pointer'>\r\n                        {auth.user.firstName[0].toUpperCase()}\r\n                      </span>\r\n                      {/* Dropdown arrow icon */}\r\n                      <svg\r\n                        className={`relative top-[1px] ml-1 h-5 w-5 ease-out duration-300 ${navigationMenuOpen && navigationMenu === 'getting-started' ? '-rotate-180' : ''}`}\r\n                        xmlns='http://www.w3.org/2000/svg'\r\n                        viewBox='0 0 24 24'\r\n                        fill='none'\r\n                        stroke='currentColor'\r\n                        strokeWidth='2'\r\n                        strokeLinecap='round'\r\n                        strokeLinejoin='round'\r\n                        aria-hidden='true'\r\n                      >\r\n                        <polyline points='6 9 12 15 18 9'></polyline>\r\n                      </svg>\r\n                    </button>\r\n\r\n                    {/* Dropdown menu items */}\r\n                    {navigationMenuOpen && navigationMenu === 'getting-started' && (\r\n                      <div className='absolute z-10 mt-1 w-48 -ml-20 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none'>\r\n                        {/* List of links */}\r\n                        <a href='/MyCourse' className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900'>My Courses</a>\r\n                        <a href='/Purchases' className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900'>Purchases</a>\r\n                        <a href='/Profile' className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900'>Profile</a>\r\n                        <a href='/Settings' className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900'>Settings</a>\r\n                        <a href='#' className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900'>Updates</a>\r\n                        <a href='#' className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900'>Accomplishments</a>\r\n                        <a href='#' className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900'>Help Center</a>\r\n                        <a href='#' className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900' onClick={handleLogout}>Logout</a>\r\n                      </div>\r\n                    )}\r\n                  </div>\r\n                </div>\r\n              )}\r\n              {/* Login and Join Us Buttons */}\r\n              {!auth.user && (\r\n                <div className='flex items-center space-x-4'>\r\n                  <Menu as='div' className='relative'>\r\n                    <Link to='/login'>\r\n                      <div className='text-white'>Log In</div>\r\n                    </Link>\r\n                  </Menu>\r\n                  <Menu as='div' className='relative'>\r\n                    <Link to='/SignUp'>\r\n                      <button className='py-3 px-6 bg-blue-800 text-white rounded'>Join Us</button>\r\n                    </Link>\r\n                  </Menu>\r\n                </div>\r\n              )}\r\n            </div>\r\n          </div>\r\n          <Disclosure.Panel className='sm:hidden'>\r\n            <div className='space-y-1 px-2 pb-3 pt-2'>\r\n              {navigation.map((item) => (\r\n                <Disclosure.Button\r\n                  key={item.name}\r\n                  as='a'\r\n                  href={item.href}\r\n                  className={classNames(\r\n                    item.current\r\n                      ? 'bg-gray-900 text-white'\r\n                      : 'text-gray-300 hover:bg-gray-700 hover:text-white',\r\n                    'block rounded-md px-3 py-2 text-base font-medium'\r\n                  )}\r\n                  aria-current={item.current ? 'page' : undefined}\r\n                >\r\n                  {item.name}\r\n                </Disclosure.Button>\r\n              ))}\r\n            </div>\r\n          </Disclosure.Panel>\r\n        </>\r\n      )}\r\n    </Disclosure>\r\n  );\r\n};\r\n\r\nexport default Navbar;
+===================================================================
+diff --git a/../src/Components/Navbar.jsx b/../src/Components/Navbar.jsx
+--- a/../src/Components/Navbar.jsx	
++++ b/../src/Components/Navbar.jsx	
+@@ -135,7 +135,7 @@
+                     >
+                       {/* User initials */}
+                       <span className='p-3 w-12 rounded-full bg-blue-400 text-white font-bold text-center cursor-pointer'>
+-                        {auth.user.firstName[0].toUpperCase()}
++                        {auth.user.userName[0].toUpperCase()}
+                       </span>
+                       {/* Dropdown arrow icon */}
+                       <svg
+Index: ../src/State/Auth/Action.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import axios from 'axios';\r\nimport { API_BASE_URL } from '../../Config/ApiConfig';\r\nimport {\r\n  REGISTER_SUCCESS,\r\n  REGISTER_REQUEST,\r\n  REGISTER_FAILURE,\r\n  LOGIN_FAILURE,\r\n  LOGIN_REQUEST,\r\n  LOGIN_SUCCESS,\r\n  GET_USER_FAILURE,\r\n  GET_USER_REQUEST,\r\n  GET_USER_SUCCESS,\r\n  LOGOUT,\r\n  GET_ACCOUNT_REQUEST,\r\n  GET_ACCOUNT_SUCCESS,\r\n  GET_ACCOUNT_FAILURE,\r\n  UPDATE_ACCOUNT_REQUEST,\r\n  UPDATE_ACCOUNT_SUCCESS,\r\n  UPDATE_ACCOUNT_FAILURE,\r\n} from './ActionType';\r\n\r\nconst token = localStorage.getItem('jwt');\r\n\r\nconst registerRequest = () => ({ type: REGISTER_REQUEST });\r\nconst registerSuccess = (user) => ({ type: REGISTER_SUCCESS, payload: user });\r\nconst registerFailure = (error) => ({ type: REGISTER_FAILURE, payload: error });\r\n\r\nexport const register = (userData) => async (dispatch) => {\r\n  dispatch(registerRequest());\r\n\r\n  try {\r\n    const response = await axios.post(`${API_BASE_URL}/auth/signup`, userData);\r\n    const user = response.data;\r\n    if (user.jwt) {\r\n      localStorage.setItem('jwt', user.jwt);\r\n    }\r\n    console.log('user', user);\r\n    dispatch(registerSuccess(user.jwt));\r\n  } catch (error) {\r\n    dispatch(registerFailure(error.message));\r\n  }\r\n};\r\n\r\nconst loginRequest = () => ({ type: LOGIN_REQUEST });\r\nconst loginSuccess = (user) => ({ type: LOGIN_SUCCESS, payload: user });\r\nconst loginFailure = (error) => ({ type: LOGIN_FAILURE, payload: error });\r\n\r\nexport const login = (userData) => async (dispatch) => {\r\n  dispatch(loginRequest);\r\n\r\n  try {\r\n    const response = await axios.post(`${API_BASE_URL}/auth/signin`, userData);\r\n    const user = response.data;\r\n    if (user.jwt) {\r\n      localStorage.setItem('jwt', user.jwt);\r\n    }\r\n    console.log('user', user);\r\n    dispatch(loginSuccess(user.jwt));\r\n  } catch (error) {\r\n    dispatch(loginFailure(error.message));\r\n  }\r\n};\r\n\r\nconst getUserRequest = () => ({ type: GET_USER_REQUEST });\r\nconst getUserSuccess = (user) => ({ type: GET_USER_SUCCESS, payload: user });\r\nconst getUserFailure = (error) => ({ type: GET_USER_FAILURE, payload: error });\r\n\r\nexport const getUser = (jwt) => async (dispatch) => {\r\n  dispatch(getUserRequest());\r\n\r\n  try {\r\n    const response = await axios.get(`${API_BASE_URL}/api/users/profile`, {\r\n      headers: {\r\n        Authorization: `Bearer ${jwt}`,\r\n      },\r\n    });\r\n    const user = response.data;\r\n    console.log('user data', user);\r\n\r\n    dispatch(getUserSuccess(user));\r\n  } catch (error) {\r\n    dispatch(getUserFailure(error.message));\r\n  }\r\n};\r\n\r\n\r\nconst updateAccountRequest = () => ({ type: UPDATE_ACCOUNT_REQUEST });\r\nconst updateAccountSuccess = (updatedAccount) => ({ type: UPDATE_ACCOUNT_SUCCESS, payload: updatedAccount });\r\nconst updateAccountFailure = (error) => ({ type: UPDATE_ACCOUNT_FAILURE, payload: error });\r\n\r\n// export const updateAccount = (accountData) => async (dispatch) => {\r\n//   dispatch(updateAccountRequest());\r\n//   const jwtToken = localStorage.getItem('jwt');\r\n//   try {\r\n//     const response = await axios.put(`${API_BASE_URL}/api/users/updateUserDetails`, accountData, {\r\n//       headers: { Authorization: `Bearer ${jwtToken}` },\r\n//     });\r\n//     const updatedAccount = response.data;\r\n//     dispatch(updateAccountSuccess(updatedAccount));\r\n//     // Optionally, dispatch an action to refresh user details or update the state\r\n//   } catch (error) {\r\n//     dispatch(updateAccountFailure(error.message));\r\n//   }\r\n// };\r\n\r\nexport const updateAccount = (jwt, accountData) => async (dispatch) => {\r\n  dispatch(updateAccountRequest());\r\n  try {\r\n    const response = await axios.put('http://localhost:8082/api/users/updateUserDetails', accountData, {\r\n      headers: {\r\n        Authorization: `Bearer ${jwt}`,\r\n      },\r\n    });\r\n    const updatedAccount = response.data;\r\n    console.log('Account details updated successfully');\r\n    dispatch(updateAccountSuccess(updatedAccount));\r\n    // Optionally, dispatch an action or update state in Redux\r\n  } catch (error) {\r\n    dispatch(updateAccountFailure(error.message));\r\n    // Handle error (e.g., show error message to the user)\r\n  }\r\n};\r\n\r\nexport const logout = (token) => {\r\n  return async (dispatch) => {\r\n    dispatch({ type: LOGOUT });\r\n    localStorage.clear();\r\n  };\r\n};\r\n
+===================================================================
+diff --git a/../src/State/Auth/Action.js b/../src/State/Auth/Action.js
+--- a/../src/State/Auth/Action.js	
++++ b/../src/State/Auth/Action.js	
+@@ -11,16 +11,69 @@
+   GET_USER_REQUEST,
+   GET_USER_SUCCESS,
+   LOGOUT,
+-  GET_ACCOUNT_REQUEST,
+-  GET_ACCOUNT_SUCCESS,
+-  GET_ACCOUNT_FAILURE,
+   UPDATE_ACCOUNT_REQUEST,
+   UPDATE_ACCOUNT_SUCCESS,
+   UPDATE_ACCOUNT_FAILURE,
++  SEND_OTP_FAILURE,
++  SEND_OTP_REQUEST,
++  SEND_OTP_SUCCESS,
++  VERIFY_OTP_FAILURE,
++  VERIFY_OTP_REQUEST,
++  VERIFY_OTP_SUCCESS
+ } from './ActionType';
+ 
+ const token = localStorage.getItem('jwt');
+ 
++// Send OTP action creator
++export const sendOtpRequest = () => ({
++  type: SEND_OTP_REQUEST,
++});
++
++export const sendOtpSuccess = () => ({
++  type: SEND_OTP_SUCCESS,
++});
++
++export const sendOtpFailure = (error) => ({
++  type: SEND_OTP_FAILURE,
++  payload: error,
++});
++
++export const sendOtp = (email) => async (dispatch) => {
++  dispatch(sendOtpRequest());
++  try {
++    const response = await axios.post(`${API_BASE_URL}/api/users/sendMail/${email}`, { email });
++    dispatch(sendOtpSuccess());
++    return response.data; // Optionally return data for further processing
++  } catch (error) {
++    dispatch(sendOtpFailure(error.message));
++  }
++};
++
++// Verify OTP action creator
++export const verifyOtpRequest = () => ({
++  type: VERIFY_OTP_REQUEST,
++});
++
++export const verifyOtpSuccess = () => ({
++  type: VERIFY_OTP_SUCCESS,
++});
++
++export const verifyOtpFailure = (error) => ({
++  type: VERIFY_OTP_FAILURE,
++  payload: error,
++});
++
++export const verifyOtp = (email, otp) => async (dispatch) => {
++  dispatch(verifyOtpRequest());
++  try {
++    const response = await axios.put(`${API_BASE_URL}/api/users/verfication/${email}`, { email, otp });
++    dispatch(verifyOtpSuccess());
++    return response.data; // Optionally return data for further processing
++  } catch (error) {
++    dispatch(verifyOtpFailure(error.message));
++  }
++};
++
+ const registerRequest = () => ({ type: REGISTER_REQUEST });
+ const registerSuccess = (user) => ({ type: REGISTER_SUCCESS, payload: user });
+ const registerFailure = (error) => ({ type: REGISTER_FAILURE, payload: error });

@@ -30,7 +30,18 @@ public class CustomEmployeeDetails implements UserDetailsService {
 
         List<GrantedAuthority> authorities = new ArrayList<>();
 
-        return new org.springframework.security.core.userdetails.User(employee.getEmployeeId(),employee.getEmployeePassword(),authorities);
+        return new org.springframework.security.core.userdetails.User(employee.getEmployeeId(),employee.getPassword(),authorities);
     }
 
+    public UserDetails loadUserByUserEmail(String email) {
+        Employee employee = employeeRepository.findByEmail(email);
+
+        if(employee == null) {
+            throw new UsernameNotFoundException("Employee not found with email: "+email);
+        }
+
+        List<GrantedAuthority> authorities = new ArrayList<>();
+
+        return new org.springframework.security.core.userdetails.User(employee.getEmail(),employee.getPassword(),authorities);
+    }
 }

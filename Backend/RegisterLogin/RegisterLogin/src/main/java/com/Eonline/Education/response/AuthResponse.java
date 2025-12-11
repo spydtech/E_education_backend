@@ -1,11 +1,27 @@
 package com.Eonline.Education.response;
 
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class AuthResponse {
 
     private String jwt;
 
     private boolean status;
+    private String role;
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
 
     public AuthResponse() {
         // TODO Auto-generated constructor stub
@@ -15,6 +31,12 @@ public class AuthResponse {
         super();
         this.jwt = jwt;
         this.status = status;
+    }
+    public AuthResponse(String jwt, boolean status,String role) {
+        super();
+        this.jwt = jwt;
+        this.status = status;
+        this.role=role;
     }
 
     public AuthResponse(Object o, boolean b, String s) {
@@ -37,5 +59,10 @@ public class AuthResponse {
     }
 
 
+    public void setEmail(String email) {
+    }
 
+    public void setFullName(String s) {
+
+    }
 }

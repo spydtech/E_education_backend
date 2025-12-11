@@ -2,16 +2,12 @@ package com.Eonline.Education.Service;
 
 import com.Eonline.Education.Configuration.JwtTokenProvider;
 import com.Eonline.Education.exceptions.UserException;
-import com.Eonline.Education.modals.Account;
-import com.Eonline.Education.modals.Education;
-import com.Eonline.Education.modals.PasswordChange;
-import com.Eonline.Education.modals.User;
+import com.Eonline.Education.modals.*;
 import com.Eonline.Education.repository.AccountRepository;
 import com.Eonline.Education.repository.EducationRepository;
 import com.Eonline.Education.repository.UserRepository;
-import com.Eonline.Education.response.AccountResponse;
-import com.Eonline.Education.response.EducationResponse;
-import com.Eonline.Education.response.MessageResponse;
+import com.Eonline.Education.response.*;
+import com.Eonline.Education.user.UserStatus;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,9 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 
 @Service
 public class UserServiceImplementation implements UserService {
@@ -32,17 +26,19 @@ public class UserServiceImplementation implements UserService {
     private final JwtTokenProvider jwtTokenProvider;
     private final AccountRepository accountRepository;
     private final EducationRepository educationRepository;
-
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserServiceImplementation(UserRepository userRepository, JwtTokenProvider jwtTokenProvider, AccountRepository
-            accountRepository, EducationRepository educationRepository,PasswordEncoder passwordEncoder) {
+    public UserServiceImplementation(UserRepository userRepository,
+                                     JwtTokenProvider jwtTokenProvider,
+                                     AccountRepository accountRepository,
+                                     EducationRepository educationRepository,
+                                     PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.jwtTokenProvider = jwtTokenProvider;
         this.accountRepository = accountRepository;
         this.educationRepository = educationRepository;
-        this.passwordEncoder=passwordEncoder;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -54,11 +50,9 @@ public class UserServiceImplementation implements UserService {
     @Override
     public User findUserProfileByJwt(String jwt) throws UserException {
         String email = jwtTokenProvider.getEmailFromJwtToken(jwt);
-        User user = userRepository.findByEmail(email);
-        if (user == null) {
-            throw new UserException("User not exist with email " + email);
-        }
-        return user;
+        // ✅ FIXED: Handle Optional properly
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserException("User not exist with email " + email));
     }
 
     @Override
@@ -66,20 +60,19 @@ public class UserServiceImplementation implements UserService {
         return userRepository.findAllByOrderByCreatedAtDesc();
     }
 
-//    @Override
-//    public List<User> getAllUsers() {
-//        return null;
-//    }
-
     @Override
     public void deleteUser(Long userId) {
-
+        // Implementation for delete user
+        userRepository.deleteById(userId);
     }
 
     @Override
     public ResponseEntity<?> getAccountDetails(String email) {
-        User userDetails = userRepository.findByEmail(email);
-        long userAccID = userDetails.getId();
+        // ✅ FIXED: Handle Optional properly
+        User userDetails = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+
+        Long userAccID = userDetails.getId();
 
         if (!accountRepository.existsByUserId(userAccID)) {
             Account accountDetails = new Account();
@@ -87,21 +80,24 @@ public class UserServiceImplementation implements UserService {
             accountDetails.setUserEmail(userDetails.getEmail());
             accountDetails.setFullName(userDetails.getFirstName() + " " + userDetails.getLastName());
             accountRepository.save(accountDetails);
+            return ResponseEntity.ok(accountDetails);
+        } else {
+            Account account = accountRepository.findByUserId(userAccID);
+            AccountResponse accountResponse = new AccountResponse();
+            accountResponse.setFullName(account.getFullName());
+            accountResponse.setUserEmail(account.getUserEmail());
+            accountResponse.setLocation(account.getLocation());
+            accountResponse.setPhoneNumber(account.getPhoneNumber());
+            return ResponseEntity.ok(accountResponse);
         }
-
-        Account account = accountRepository.findByUserId(userAccID);
-        AccountResponse accountResponse = new AccountResponse();
-        accountResponse.setFullName(account.getFullName());
-        accountResponse.setUserEmail(account.getUserEmail());
-        accountResponse.setLocation(account.getLocation());
-        accountResponse.setPhoneNumber(account.getPhoneNumber());
-
-        return ResponseEntity.ok(accountResponse);
     }
 
     @Override
     public ResponseEntity<?> updateAccountDetails(String email, Account userAccount) {
-        User currentUser = userRepository.findByEmail(email);
+        // ✅ FIXED: Handle Optional properly
+        User currentUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+
         long currentUserId = currentUser.getId();
 
         if (accountRepository.existsByUserId(currentUserId)) {
@@ -130,11 +126,12 @@ public class UserServiceImplementation implements UserService {
         return random.nextInt(900000) + 100000;
     }
 
-
-
     @Override
     public ResponseEntity<?> updateEducationDetails(String email, Education userEducation) {
-        User currentEduUser = userRepository.findByEmail(email);
+        // ✅ FIXED: Handle Optional properly
+        User currentEduUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+
         long currentEduUserId = currentEduUser.getId();
 
         if (educationRepository.existsByUserId(currentEduUserId)) {
@@ -163,7 +160,10 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     public ResponseEntity<?> getEducationDetails(String email) {
-        User userEducationDetails = userRepository.findByEmail(email);
+        // ✅ FIXED: Handle Optional properly
+        User userEducationDetails = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+
         long userEducationID = userEducationDetails.getId();
         Education education = educationRepository.findByUserId(userEducationID);
 
@@ -187,87 +187,76 @@ public class UserServiceImplementation implements UserService {
         return educationResponse;
     }
 
+    @Override
+    public User findByEmail(String email) {
+        // ✅ FIXED: Handle Optional properly
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+    }
 
-        public User findByEmail(String email) {
-            User user = userRepository.findByEmail(email);
-            if (user == null) {
-                throw new UsernameNotFoundException("User not found with email: " + email);
-            }
-            return user;
-        }
-
-
-
-
-
+    @Override
     public User saveUser(User user) {
         return userRepository.save(user);
     }
 
-    public User updateDetails(long id,User userUpdate){
-        Optional<User> existingUser = userRepository.findById(id);
-
-        if(existingUser.isPresent()){
-            User existingUser1=existingUser.get();
-            existingUser1.setFirstName(userUpdate.getFirstName());
-            existingUser1.setLastName(userUpdate.getLastName());
-            existingUser1.setEmail(userUpdate.getEmail());
-//            existingUser1.setPassword(userUpdate.getPassword());
-            existingUser1.setBio(userUpdate.getBio());
-            existingUser1.setDateOfBirth(userUpdate.getDateOfBirth());
-            existingUser1.setGender(userUpdate.getGender());
-            existingUser1.setLocation(userUpdate.getLocation());
-            existingUser1.setPhoneNumber(userUpdate.getPhoneNumber());
-            existingUser1.setWebsite(userUpdate.getWebsite());
-            return userRepository.save(existingUser1);
-        }else{
-            throw new RuntimeException("id not found");
-        }
-
+    @Override
+    public User updateDetails(long id, User userUpdate) {
+        return userRepository.findById(id)
+                .map(existingUser -> {
+                    existingUser.setFirstName(userUpdate.getFirstName());
+                    existingUser.setLastName(userUpdate.getLastName());
+                    existingUser.setEmail(userUpdate.getEmail());
+                    existingUser.setBio(userUpdate.getBio());
+                    existingUser.setDateOfBirth(userUpdate.getDateOfBirth());
+                    existingUser.setGender(userUpdate.getGender());
+                    existingUser.setLocation(userUpdate.getLocation());
+                    existingUser.setPhoneNumber(userUpdate.getPhoneNumber());
+                    existingUser.setWebsite(userUpdate.getWebsite());
+                    return userRepository.save(existingUser);
+                })
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
     }
 
     @Override
     public User getUserById(Long userId) {
-        return null;
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
     }
 
-    public String updatePassword(String email,PasswordChange passwordChange){
-        Optional<User> user= Optional.ofNullable(userRepository.findByEmail(email));
-        if(user.isPresent()){
-            User user1=user.get();
-            if(passwordChange.getNewPassword().equals(passwordChange.getConfirmPassword())){
-                if(passwordEncoder.matches(passwordChange.getOldPassword(), user1.getPassword())){
-                    user1.setPassword(passwordEncoder.encode(passwordChange.getNewPassword()));
-                    userRepository.save(user1);
-                    return "password updated successfully";
-                }else{
-                    return "password not matches with the old password";
-                }
+    @Override
+    public String updatePassword(String email, PasswordChange passwordChange) {
+        // ✅ FIXED: Handle Optional properly
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
-            }else{
-                return "new Password and confirm Password are not equal";
+        if (passwordChange.getNewPassword().equals(passwordChange.getConfirmPassword())) {
+            if (passwordEncoder.matches(passwordChange.getOldPassword(), user.getPassword())) {
+                user.setPassword(passwordEncoder.encode(passwordChange.getNewPassword()));
+                userRepository.save(user);
+                return "Password updated successfully";
+            } else {
+                return "New password does not match with the old password";
             }
-
-        }else{
-            return "user is not found";
+        } else {
+            return "New password and confirm password do not match";
         }
-
-
     }
-    //saving profile photo and cover photo in database
+
     @Override
     public String saveProfilePhoto(String email, MultipartFile file) throws IOException {
         return saveFile(email, file, "profile");
     }
 
     @Override
-    public String saveCoverPhoto(String email, MultipartFile file)  throws IOException {
+    public String saveCoverPhoto(String email, MultipartFile file) throws IOException {
         return saveFile(email, file, "cover");
     }
 
     @Override
-    public String saveFile(String email, MultipartFile file, String type)throws IOException {
-        User user = userRepository.findByEmail(email);
+    public String saveFile(String email, MultipartFile file, String type) throws IOException {
+        // ✅ FIXED: Handle Optional properly
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
         byte[] fileContent = file.getBytes();
         if ("profile".equals(type)) {
@@ -275,24 +264,103 @@ public class UserServiceImplementation implements UserService {
         } else if ("cover".equals(type)) {
             user.setCoverPhoto(fileContent);
         }
-
         userRepository.save(user);
         return "File uploaded successfully: " + file.getOriginalFilename();
     }
 
     @Override
     public byte[] getProfilePhoto(String email) {
-        User user = userRepository.findByEmail(email);
-        return user != null ? user.getProfilePhoto() : null;
+        // ✅ FIXED: Handle Optional properly
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+        return user.getProfilePhoto();
     }
 
     @Override
     public byte[] getCoverPhoto(String email) {
-        User user = userRepository.findByEmail(email);;
-        return user != null ? user.getCoverPhoto() : null;
+        // ✅ FIXED: Handle Optional properly
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+        return user.getCoverPhoto();
     }
-    public List<User> getAllUsers(){
+
+    @Override
+    public ResponseEntity<Account> accountSave(String jwt, Account account) {
+        String email = jwtTokenProvider.getEmailFromJwtToken(jwt);
+        // ✅ FIXED: Handle Optional properly
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+
+        Account account1 = new Account();
+        account1.setPhoneNumber(account.getPhoneNumber());
+        account1.setUserEmail(account.getUserEmail());
+        account1.setLocation(account.getLocation());
+        account1.setFullName(account.getFullName());
+        account1.setUser(user);
+        accountRepository.save(account1);
+        return ResponseEntity.ok(account1);
+    }
+
+    @Override
+    public ResponseEntity<AdminProfileResponse> adminProfileUpdate(Long id, MultipartFile file,
+                                                                   String firstName, String lastName,
+                                                                   String email, String phoneNumber) throws IOException {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+
+        user.setProfilePhoto(file.getBytes());
+        user.setEmail(email);
+        user.setPhoneNumber(phoneNumber);
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        userRepository.save(user);
+
+        return ResponseEntity.ok(userToAdminDetails(user, file));
+    }
+
+    @Override
+    public UserProfileResponse findUserProfile(String jwt) {
+        String email = jwtTokenProvider.getEmailFromJwtToken(jwt);
+        // ✅ FIXED: Handle Optional properly
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+        return userToProfileResponse(user);
+    }
+
+    private UserProfileResponse userToProfileResponse(User user) {
+        return new UserProfileResponse(
+                user.getId(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getEmail(),
+                user.getRole(),
+                user.getProfilePhoto(),
+                user.getStatus()
+        );
+    }
+
+    private AdminProfileResponse userToAdminDetails(User user, MultipartFile file) {
+        AdminProfileResponse ad = new AdminProfileResponse();
+        ad.setEmail(user.getEmail());
+        ad.setPhoneNumber(user.getPhoneNumber());
+        ad.setProfilePhoto(file.getOriginalFilename());
+        ad.setFirstName(user.getFirstName());
+        ad.setLastName(user.getLastName());
+        return ad;
+    }
+
+    @Override
+    public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
+    @Override
+    public Map<String, Long> activeInactiveCount() {
+        Map<String, Long> map = new HashMap<>();
+        long activeUserCount = userRepository.findAllByStatus(UserStatus.ACTIVE).size();
+        long inActiveUserCount = userRepository.findAllByStatus(UserStatus.INACTIVE).size();
+        map.put("activeUserCount", activeUserCount);
+        map.put("inactiveUserCount", inActiveUserCount);
+        return map;
+    }
 }

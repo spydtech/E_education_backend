@@ -1,108 +1,94 @@
 package com.Eonline.Education.modals;
 
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
-import java.sql.Blob;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
-
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
+@Table(name = "posts")
 public class Post {
-	@Id
-	@GeneratedValue(strategy=GenerationType.AUTO)
-	private long id;
-	private String name;
-	@Column(length=5000)
-	private String content;
-	private String postedBY;
-//    @Lob
-//    private Blob img;
-	//private String img;
-	@Lob
-	private byte[] img;
-	private LocalDateTime dateTime;
-	private int likeCount;
-	private int viewCount;
-	private List<String> tags;
-	public long getId() {
-		return id;
-	}
-	public void setId(long id) {
-		this.id = id;
-	}
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
-	public String getContent() {
-		return content;
-	}
-	public void setContent(String content) {
-		this.content = content;
-	}
-	
-//	public String getImg() {
-//		return img;
-//	}
-//	public void setImg(String img) {
-//		this.img = img;
-//	}
-	
-	
-	public String getPostedBY() {
-		return postedBY;
-	}
-	public void setPostedBY(String postedBY) {
-		this.postedBY = postedBY;
-	}
-	
-//	public Blob getImg() {
-//		return img;
-//	}
-//	public void setImg(Blob img) {
-//		this.img = img;
-//	
 
-	
-	public int getLikeCount() {
-		return likeCount;
-	}
-	public byte[] getImg() {
-		return img;
-	}
-	public void setImg(byte[] img) {
-		this.img = img;
-	}
-	public LocalDateTime getDateTime() {
-		return dateTime;
-	}
-	public void setDateTime(LocalDateTime dateTime) {
-		this.dateTime = dateTime;
-	}
-	public void setLikeCount(int likeCount) {
-		this.likeCount = likeCount;
-	}
-	public int getViewCount() {
-		return viewCount;
-	}
-	public void setViewCount(int viewCount) {
-		this.viewCount = viewCount;
-	}
-	public List<String> getTags() {
-		return tags;
-	}
-	public void setTags(List<String> tags) {
-		this.tags = tags;
-	}
-	
-	
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
+    @Column(nullable = false)
+    private String name;
+
+    @Column(length = 5000, nullable = false)
+    private String content;
+
+    @Column(name = "posted_by", nullable = false)
+    private String postedBY;
+
+    // Single image (for backward compatibility)
+    @Lob
+    @Column(name = "img", columnDefinition = "LONGBLOB")
+    private byte[] img;
+
+    // Single video (for backward compatibility)
+    @Lob
+    @Column(name = "video", columnDefinition = "LONGBLOB")
+    private byte[] video;
+
+    @Column(name = "media_type")
+    private String mediaType;
+
+    @Column(name = "file_name")
+    private String fileName;
+
+    @Lob
+    @Column(name = "profile_picture", columnDefinition = "LONGBLOB")
+    private byte[] profilePicture;
+
+    @ElementCollection
+    @CollectionTable(name = "post_images", joinColumns = @JoinColumn(name = "post_id"))
+    @Column(name = "image_data", columnDefinition = "LONGBLOB")
+    private List<byte[]> images = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "post_videos", joinColumns = @JoinColumn(name = "post_id"))
+    @Column(name = "video_data", columnDefinition = "LONGBLOB")
+    private List<byte[]> videos = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "post_tags", joinColumns = @JoinColumn(name = "post_id"))
+    @Column(name = "tag")
+    private List<String> tags = new ArrayList<>();
+
+    @Column(name = "like_count", nullable = false)
+    private int likeCount = 0;
+
+    @Column(name = "view_count", nullable = false)
+    private int viewCount = 0;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    // Constructor for text-only posts
+    public Post(String name, String content, String postedBY) {
+        this.name = name;
+        this.content = content;
+        this.postedBY = postedBY;
+        this.createdAt = LocalDateTime.now();
+    }
+
+    // Pre-update hook
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }

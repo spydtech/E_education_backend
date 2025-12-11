@@ -8,11 +8,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee,Long> {
 
-    boolean existsByEmployeeEmail(String email);
+    boolean existsByEmail(String email);
 
     boolean existsByEmployeeId(String userId);
 
     Employee findByEmployeeId(String employeeId);
 
-    Employee findByEmployeeEmail(String employeeEmail);
+    Employee findByEmail(String employeeEmail);
 }

@@ -27,13 +27,10 @@ public class RazorypayController {
             orderRequestJson.put("currency", orderRequest.getCurrency());
             orderRequestJson.put("receipt", orderRequest.getReceipt());
             orderRequestJson.put("payment_capture", 1); // Auto-capture payment
-
             orderRequestJson.put("notes", new JSONObject().put("payment_method", orderRequest.getPaymentMethod()));
 
             com.razorpay.Order razorpayOrder = razorpayClient.orders.create(orderRequestJson);
             return ResponseEntity.ok(razorpayOrder.toString());
-
-
         }catch  (RazorpayException e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating order: " + e.getMessage());

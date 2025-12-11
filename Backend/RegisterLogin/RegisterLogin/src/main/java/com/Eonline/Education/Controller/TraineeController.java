@@ -59,28 +59,41 @@ public class TraineeController {
         }
     }
 
+    @PutMapping("update/trainee/{email}")
+    public ResponseEntity<TraineeCredentialGenerator> update(@RequestBody TraineeCredentialGenerator traineeCredentialGenerator){
+        return ResponseEntity.ok(traineeService.update(traineeCredentialGenerator));
+    }
+
     // Endpoint for trainee signin (authentication)
     @PostMapping("/signin")
     public ResponseEntity<AuthResponse> signin(@RequestBody TraineeCredentialGenerator traineeCredentialGenerator) {
         try {
-            // Authenticate trainee
-            Authentication authentication = authenticate(traineeCredentialGenerator.getUserId(), traineeCredentialGenerator.getPassword());
+            String trainee = traineeCredentialGenerator.getEmail() != null
+                    ? traineeCredentialGenerator.getEmail()
+                    : traineeCredentialGenerator.getUserId();
+            Authentication authentication = traineeCredentialGenerator.getEmail() != null
+                    ? authenticateEmial(trainee, traineeCredentialGenerator.getPassword())
+                    : authenticate(trainee, traineeCredentialGenerator.getPassword());
+
             SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            // Generate JWT token
             String token = jwtTokenProvider.generateToken(authentication);
+
             AuthResponse authResponse = new AuthResponse(token, true);
+            if (traineeCredentialGenerator.getEmail() != null) {
+                traineeService.logInTraineeEmail(traineeCredentialGenerator);
+            } else {
+                traineeService.logInTrainee(traineeCredentialGenerator);
+            }
 
-            // Log trainee login event
-            traineeService.logInTrainee(traineeCredentialGenerator);
-
-            return new ResponseEntity<>(authResponse, HttpStatus.OK);
+            return ResponseEntity.ok(authResponse);
         } catch (BadCredentialsException e) {
             logger.error("Authentication error: {}", e.getMessage());
-            return new ResponseEntity<>(new AuthResponse("Invalid userId or password", false), HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new AuthResponse("Invalid userId or password", false));
         } catch (Exception e) {
             logger.error("Signin error: {}", e.getMessage());
-            return new ResponseEntity<>(new AuthResponse("An error occurred during signin", false), HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new AuthResponse("An error occurred during signin", false));
         }
     }
 
@@ -125,9 +138,29 @@ public class TraineeController {
 
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     }
+    private Authentication authenticateEmial(String email, String password) {
+        UserDetails userDetails = customerTraineeDetails.loadUserByEmail(email);
+
+        if (userDetails == null || !passwordEncoder.matches(password, userDetails.getPassword())) {
+            throw new BadCredentialsException("Invalid Email or password");
+        }
+
+        return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+    }
 
     @GetMapping("/getAllTrainee")
     public ResponseEntity<List<TraineeCredentialGenerator>> getAllTrainess(){
         return new ResponseEntity<>(traineeService.getAllTrainees(),HttpStatus.OK);
     }
+    @DeleteMapping("/delete/{email}")
+    public String delete(@PathVariable String email){
+        return traineeService.delete(email);
+
+    }
+//admin side dashboard
+    @GetMapping("/count")
+    public Map<String,Long> countOfTrainers(@RequestHeader("Authorization") String jwt){
+     return traineeService.countOfTrainers(jwt);
+    }
+
 }

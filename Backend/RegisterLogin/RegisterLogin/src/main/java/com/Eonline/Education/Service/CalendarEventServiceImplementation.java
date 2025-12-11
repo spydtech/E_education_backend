@@ -9,64 +9,98 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class CalendarEventServiceImplementation implements CalendarEventService {
+
     @Autowired
-    private  UserRepository userRepository;
+    private UserRepository userRepository;
 
     @Autowired
     private CalendarEventRepository calendarEventRepository;
 
     @Override
-    public ResponseEntity<?> getAllEvents(String Email) {
-        User userDetails = userRepository.findByEmail(Email);
-        long userAccID = userDetails.getId();
+    public ResponseEntity<?> getAllEvents(String email) {
+        try {
+            // Get user from repository - FIXED: Use orElseThrow to get User from Optional
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
 
-        try{
-            if(calendarEventRepository.existsByUserId(userAccID)){
-                return ResponseEntity.ok(calendarEventRepository.findByUserId(userAccID));
-            }
-            else{
-                throw new RuntimeException("No events are there for this user");
-            }
-        }
-        catch (Exception e){
-            return ResponseEntity.ok(e);
-        }
+            long userId = user.getId();
 
+            // Check if event exists for this user
+            if (calendarEventRepository.existsByUserId(userId)) {
+                CalendarEvent event = calendarEventRepository.findByUserId(userId);
+
+
+
+                return ResponseEntity.ok(event);
+            } else {
+                return ResponseEntity.ok("No events found for user: " + email);
+            }
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Internal server error: " + e.getMessage());
+        }
     }
 
     @Override
-    public CalendarEvent addEvent(CalendarEventRequest event , String Email) {
-        User userDetails = userRepository.findByEmail(Email);
-        long userAccID = userDetails.getId();
-        if (!calendarEventRepository.existsByUserId(userAccID)) {
-            CalendarEvent calendarEvent = new CalendarEvent();
-            calendarEvent.setUser(userDetails);
-            calendarEvent.setTitle(event.getTitle());
-            calendarEvent.setStartTime(event.getStartTime());
-            calendarEvent.setEndTime(event.getEndTime());
-            calendarEvent.setDate(event.getDate());
-            calendarEventRepository.save(calendarEvent);
+    public CalendarEvent addEvent(CalendarEventRequest event, String email) {
+        // Get user from repository - FIXED: Use orElseThrow to get User from Optional
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
 
-        }
-        else{
-            CalendarEvent calendarEvent =calendarEventRepository.findByUserId(userAccID);
-            calendarEvent.setTitle(event.getTitle());
-            calendarEvent.setStartTime(event.getStartTime());
-            calendarEvent.setEndTime(event.getEndTime());
-            calendarEvent.setDate(event.getDate());
-            calendarEventRepository.save(calendarEvent);
+        long userId = user.getId();
+        CalendarEvent calendarEvent;
 
+        // Check if event already exists for this user
+        Optional<CalendarEvent> existingEventOpt = Optional.ofNullable(calendarEventRepository.findByUserId(userId));
+
+        if (existingEventOpt.isPresent()) {
+            // Update existing event
+            calendarEvent = existingEventOpt.get();
+        } else {
+            // Create new event
+            calendarEvent = new CalendarEvent();
+            calendarEvent.setUser(user);
         }
-        return calendarEventRepository.findByUserId(userAccID);
+
+        // Set event details
+        calendarEvent.setTitle(event.getTitle());
+        calendarEvent.setDate(event.getDate());
+        calendarEvent.setStartTime(event.getStartTime());
+        calendarEvent.setEndTime(event.getEndTime());
+
+        // Set optional fields
+        if (event.getMeetingLink() != null && !event.getMeetingLink().isEmpty()) {
+            calendarEvent.setMeetingLink(event.getMeetingLink());
+        }
+
+        // Set admin email if provided
+        if (event.getUserEmail() != null && !event.getUserEmail().isEmpty()) {
+            calendarEvent.setAdminEmail(event.getUserEmail());
+        }
+
+        // Save and return the event
+        return calendarEventRepository.save(calendarEvent);
     }
 
     @Override
-    public void deleteEvent(String Email) {
-        User userDetails = userRepository.findByEmail(Email);
-        long userAccID = userDetails.getId();
-        calendarEventRepository.deleteByUserId(userAccID);
+    public void deleteEvent(String email) {
+        // Get user from repository - FIXED: Use orElseThrow to get User from Optional
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
 
+        long userId = user.getId();
+
+        // Check if event exists before deleting
+        if (calendarEventRepository.existsByUserId(userId)) {
+            calendarEventRepository.deleteByUserId(userId);
+        } else {
+            throw new RuntimeException("No events found for user: " + email);
+        }
     }
 }

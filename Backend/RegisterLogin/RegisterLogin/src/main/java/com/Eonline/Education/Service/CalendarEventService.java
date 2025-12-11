@@ -5,14 +5,7 @@ import com.Eonline.Education.modals.CalendarEvent;
 import org.springframework.http.ResponseEntity;
 
 public interface CalendarEventService {
-
-    public ResponseEntity<?> getAllEvents(String Email);
-
-    public CalendarEvent addEvent(CalendarEventRequest event , String Email);
-
-    public void deleteEvent(String Email);
-
-
-
-
+    ResponseEntity<?> getAllEvents(String email);
+    CalendarEvent addEvent(CalendarEventRequest event, String email);
+    void deleteEvent(String email);
 }

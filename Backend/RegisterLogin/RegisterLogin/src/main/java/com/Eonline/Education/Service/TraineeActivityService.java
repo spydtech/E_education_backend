@@ -34,4 +34,8 @@ public class TraineeActivityService {
         long totalTraineeCount = traineeRepository.count();
         return (int) (totalTraineeCount - activeTrainees.size());
     }
+
+    public void traineeLoggedInEmail(TraineeCredentialGenerator traineeCredentialGenerator) {
+        activeTrainees.put(traineeCredentialGenerator.getEmail(), traineeCredentialGenerator);
+    }
 }

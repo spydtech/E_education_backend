@@ -1,12 +1,12 @@
 package com.Eonline.Education.modals;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -17,17 +17,13 @@ public class Employee {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    private String firstName;
+    private String lastName;
+    private String phoneNumber;
+    private String email;
+    private String password;
     private String employeeId;
-
-    private String employeeName;
-
-    private String employeeEmail;
-
-    private String employeePassword;
-
-
-
-
+    @OneToMany(mappedBy = "assignTo", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Ticket> tickets;
 
 }

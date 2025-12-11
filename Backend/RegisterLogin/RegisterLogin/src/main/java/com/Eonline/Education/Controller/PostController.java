@@ -1,147 +1,262 @@
 package com.Eonline.Education.Controller;
 
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.List;
-
-import javax.sql.rowset.serial.SerialException;
-
 import com.Eonline.Education.Service.PostService;
 import com.Eonline.Education.Service.SaveService;
 import com.Eonline.Education.modals.Post;
 import com.Eonline.Education.modals.SaveEntity;
+import com.Eonline.Education.response.PostResponse;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-
-
-import jakarta.persistence.EntityNotFoundException;
+import java.io.IOException;
+import java.util.*;
 
 @RestController
-@RequestMapping("/posts")
+@RequestMapping("/api/posts")
+@CrossOrigin(origins = "*", maxAge = 3600)
 public class PostController {
-	@Autowired
-	private PostService postService;
-	@Autowired
-	SaveService saveService;
-	@PostMapping("/createPost")
-	public ResponseEntity<Post> createPost(@RequestBody Post post){
-		try {
-			Post createPost=postService.savePpost(post);
-			
-			return new  ResponseEntity<>(createPost,HttpStatus.CREATED);
-		}catch(Exception e) {
-			return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-		}
-	}
-	@PostMapping("/createPost/image")
-	public ResponseEntity<String> createPosts(@RequestParam MultipartFile file,@RequestParam String name,
-			@RequestParam String content,@RequestParam String postedBY,@RequestParam List<String> tags)throws IOException, SerialException, SQLException{
-		try {
-			Post createPost=postService.savePost(file, name, content, postedBY, tags);
-			//String notifications = postService.Notifications(file, name, content, postedBY, tags);
-			
-			return new  ResponseEntity<>("createdPost",HttpStatus.CREATED);
-		}catch(Exception e) {
-			return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-		}
-		
-		
-		
-	}
-	@GetMapping("/getPosts")
-	public ResponseEntity<List<Post>> getAllPost(){
-		
-		try {
-			return ResponseEntity.status(HttpStatus.OK).body(postService.getAllPost());
-		}catch(Exception e){
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-			
-		}
-	}
-	
-	@GetMapping("/{postId}")
-	public ResponseEntity<?> getPostById(@PathVariable long postId){
-		try {
-			Post post=postService.getPostById(postId);
-			return ResponseEntity.ok(post);
-		}catch(EntityNotFoundException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-		}
-		
-	}
-	@PutMapping("/{postId}/like")
-	public ResponseEntity<?> likePost(@PathVariable long postId){
-		try {
-			postService.likePost(postId);
-			return ResponseEntity.ok(new String[] {"Post liked successfully"});
-		}catch(EntityNotFoundException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
 
-		}
-	}
-	@GetMapping("/search/{name}")
-	public ResponseEntity<?> searchByName(@PathVariable String name){
-		try {
-			return ResponseEntity.status(HttpStatus.OK).body(postService.searchByName(name));
-		}catch(Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-		}
-	}
-	@DeleteMapping("/deletePost/{id}")
-	public ResponseEntity<?> deletePostById(@PathVariable long id){
-		try {
-			return new ResponseEntity<>(postService.deletePostById(id),HttpStatus.OK);
-		}catch(Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    @Autowired
+    private PostService postService;
 
-		}
+    @Autowired
+    private SaveService saveService;
 
+    // Create post with media
+    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> createPost(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam("name") String name,
+            @RequestParam("content") String content,
+            @RequestParam(value = "files", required = false) List<MultipartFile> files,
+            @RequestParam(value = "tags", required = false) List<String> tags) {
 
-	}
-	@GetMapping("/getSavedPost/{id}")
-	public ResponseEntity<String> savingThePost(@PathVariable long id){
-		try {
-			return new ResponseEntity<>(saveService.savePostById(id),HttpStatus.OK);
-		}
-		catch(Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-			
-		}
-		
-	}
-	@GetMapping("getAllSavedPosts")
-	public ResponseEntity<List<SaveEntity>> getAllSavedPost(){
-		try {
-			return new ResponseEntity<>(saveService.getAllSavedPosts(),HttpStatus.OK);
-		}
-		catch(Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-			
-		}
-		
-	}
-	@DeleteMapping("deleteSavePost/{id}")
-	public ResponseEntity<?> deleteSavedPost(@PathVariable int id){
-		try {
-			return new ResponseEntity<>(saveService.deleteSavedPost(id),HttpStatus.OK);
-		}catch(Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        try {
+            // Extract email from token (remove "Bearer " prefix)
+            String token = jwt.replace("Bearer ", "").trim();
+            String email = token.contains("@") ? token : "user@example.com"; // Simplified
 
-		}
-	}
+            Post createdPost;
 
+            if (files == null || files.isEmpty()) {
+                // Create text-only post
+                createdPost = postService.saveTextPost(jwt, name, content, email, tags);
+            } else {
+                // Separate images and videos
+                List<MultipartFile> imageFiles = new ArrayList<>();
+                List<MultipartFile> videoFiles = new ArrayList<>();
 
+                for (MultipartFile file : files) {
+                    String contentType = file.getContentType();
+                    if (contentType != null) {
+                        if (contentType.startsWith("image/")) {
+                            imageFiles.add(file);
+                        } else if (contentType.startsWith("video/")) {
+                            videoFiles.add(file);
+                        } else {
+                            return ResponseEntity.badRequest()
+                                    .body(Map.of("error", "Invalid file type. Only images and videos are supported."));
+                        }
+                    }
+                }
 
+                // Create post with media
+                createdPost = postService.savePost(jwt, imageFiles, videoFiles, name, content, email, tags);
+            }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Post created successfully");
+            response.put("postId", createdPost.getId());
+            response.put("post", createdPost);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "error", "Failed to create post: " + e.getMessage()
+                    ));
+        }
+    }
+
+    // Get all posts
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllPosts() {
+        try {
+            List<PostResponse> posts = postService.getAllPost();
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "posts", posts,
+                    "count", posts.size()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "error", "Failed to fetch posts: " + e.getMessage()
+                    ));
+        }
+    }
+
+    // Get post by ID
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getPostById(@PathVariable Long id) {
+        try {
+            Post post = postService.getPostById(id);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "post", post
+            ));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of(
+                            "success", false,
+                            "error", "Post not found"
+                    ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "error", "Failed to fetch post: " + e.getMessage()
+                    ));
+        }
+    }
+
+    // Like a post
+    @PostMapping("/{id}/like")
+    public ResponseEntity<?> likePost(@RequestHeader("Authorization") String jwt,
+                                      @PathVariable Long id) {
+        try {
+            postService.likePost(jwt, id);
+            Post post = postService.getPostById(id);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Post liked successfully",
+                    "likeCount", post.getLikeCount()
+            ));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of(
+                            "success", false,
+                            "error", "Post not found"
+                    ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "error", "Failed to like post: " + e.getMessage()
+                    ));
+        }
+    }
+
+    // Get image
+    @GetMapping("/{id}/image")
+    public ResponseEntity<byte[]> getImage(@PathVariable Long id) {
+        try {
+            byte[] image = postService.getImage(id);
+            if (image == null || image.length == 0) {
+                return ResponseEntity.notFound().build();
+            }
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.IMAGE_JPEG);
+            headers.setContentLength(image.length);
+            headers.setCacheControl("max-age=3600");
+
+            return new ResponseEntity<>(image, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // Get video
+    @GetMapping("/{id}/video")
+    public ResponseEntity<byte[]> getVideo(@PathVariable Long id) {
+        try {
+            byte[] video = postService.getVideo(id);
+            if (video == null || video.length == 0) {
+                return ResponseEntity.notFound().build();
+            }
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentLength(video.length);
+            headers.set("Content-Disposition", "inline; filename=\"video.mp4\"");
+            headers.setCacheControl("max-age=3600");
+
+            return new ResponseEntity<>(video, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // Delete post
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deletePost(@PathVariable Long id) {
+        try {
+            ResponseEntity<?> response = postService.deletePostById(id);
+            if (response.getStatusCode() == HttpStatus.OK) {
+                return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "message", "Post deleted successfully"
+                ));
+            } else {
+                return response;
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "error", "Failed to delete post: " + e.getMessage()
+                    ));
+        }
+    }
+
+    // Get user posts
+    @GetMapping("/user")
+    public ResponseEntity<?> getUserPosts(@RequestHeader("Authorization") String jwt) {
+        try {
+            List<PostResponse> posts = postService.getUserPost(jwt);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "posts", posts,
+                    "count", posts.size()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "error", "Failed to fetch user posts: " + e.getMessage()
+                    ));
+        }
+    }
+
+    // Search posts
+    @GetMapping("/search")
+    public ResponseEntity<?> searchPosts(@RequestParam("query") String query) {
+        try {
+            List<Post> posts = postService.searchByName(query);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "posts", posts,
+                    "count", posts.size()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "error", "Failed to search posts: " + e.getMessage()
+                    ));
+        }
+    }
 }

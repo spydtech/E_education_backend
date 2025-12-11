@@ -2,7 +2,7 @@ package com.Eonline.Education.Controller;
 
 import com.Eonline.Education.Service.CartItemService;
 import com.Eonline.Education.Service.UserService;
-import com.Eonline.Education.exceptions.UserException;
+import com.Eonline.Education.exceptions.AuthenticationBasedException;
 import com.Eonline.Education.modals.CartItem;
 import com.Eonline.Education.modals.User;
 import com.Eonline.Education.response.ApiResponse;
@@ -25,7 +25,7 @@ public class CartItemController {
     }
 
     @DeleteMapping("/{cartItemId}")
-    public ResponseEntity<ApiResponse>deleteCartItemHandler(@PathVariable Long cartItemId, @RequestHeader("Authorization")String jwt) throws Exception, UserException{
+    public ResponseEntity<ApiResponse>deleteCartItemHandler(@PathVariable Long cartItemId, @RequestHeader("Authorization")String jwt) throws Exception, AuthenticationBasedException{
 
         User user=userService.findUserProfileByJwt(jwt);
         cartItemService.removeCartItem(user.getId(), cartItemId);
@@ -36,7 +36,7 @@ public class CartItemController {
     }
 
     @PutMapping("/{cartItemId}")
-    public ResponseEntity<CartItem>updateCartItemHandler(@PathVariable Long cartItemId, @RequestBody CartItem cartItem, @RequestHeader("Authorization")String jwt) throws Exception, UserException {
+    public ResponseEntity<CartItem>updateCartItemHandler(@PathVariable Long cartItemId, @RequestBody CartItem cartItem, @RequestHeader("Authorization")String jwt) throws Exception, AuthenticationBasedException {
 
         User user=userService.findUserProfileByJwt(jwt);
 

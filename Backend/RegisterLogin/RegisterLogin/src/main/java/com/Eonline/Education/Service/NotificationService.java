@@ -1,14 +1,16 @@
 package com.Eonline.Education.Service;
 
+import com.Eonline.Education.modals.Notification;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-@Service
-public class NotificationService {
+import java.util.List;
 
-    @Async
-    public void sendNotification(String email, String message) {
-        // Implementation for sending notifications asynchronously
-        System.out.println("Sending notification to " + email + ": " + message);
-    }
+
+public interface NotificationService {
+
+    Notification createNotification(String email, String message);
+    List<Notification> getUnreadNotifications(String email);
+    void markAsRead(Long notificationId);
+    public String clearNotifications(String jwt);
 }

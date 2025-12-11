@@ -27,6 +27,5 @@ public class RegisterLoginApplication implements CommandLineRunner {
 	@Override
 	public void run(String... args) throws Exception {
 		System.out.println(this.passwordEncoder.encode("xyz"));
-
 	}
 }

@@ -4,12 +4,15 @@ import com.Eonline.Education.Configuration.JwtTokenProvider;
 import com.Eonline.Education.exceptions.UserException;
 import com.Eonline.Education.modals.TraineeCredentialGenerator;
 import com.Eonline.Education.repository.TraineeRepository;
+import com.Eonline.Education.user.UserStatus;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class TraineeServiceImpl implements TraineeService {
@@ -40,6 +43,7 @@ public class TraineeServiceImpl implements TraineeService {
 
         String password = traineeCredentialGenerator.getPassword();
         traineeCredentialGenerator.setPassword(passwordEncoder.encode(password));
+        traineeCredentialGenerator.setUserId(traineeCredentialGenerator.getUserId());
 
         traineeRepository.save(traineeCredentialGenerator);
         emailService.sendUserIdAndPassword(traineeCredentialGenerator.getEmail(), traineeCredentialGenerator.getUserId(), password);
@@ -56,12 +60,50 @@ public class TraineeServiceImpl implements TraineeService {
     }
     @Override
     public TraineeCredentialGenerator findUserProfileByJwt(String jwt) throws UserException {
-        String userId = jwtTokenProvider.getUserIdFromJwtToken(jwt);
-        TraineeCredentialGenerator trainee = traineeRepository.findByUserId(userId);
+        String userId = jwtTokenProvider.getEmailFromJwtToken(jwt);
+        TraineeCredentialGenerator trainee = traineeRepository.findByEmail(userId);
         if (trainee == null) {
             throw new UserException("User not exist with email " + userId);
         }
         return trainee;
+    }
+
+    @Override
+    public void logInTraineeEmail(TraineeCredentialGenerator traineeCredentialGenerator) {
+        traineeActivityService.traineeLoggedInEmail(traineeCredentialGenerator);
+    }
+
+    @Override
+    public TraineeCredentialGenerator update(TraineeCredentialGenerator traineeCredentialGenerator) {
+        TraineeCredentialGenerator trainee=traineeRepository.findByEmail(traineeCredentialGenerator.getEmail());
+        if(trainee!=null){
+            trainee.setFirstName(traineeCredentialGenerator.getFirstName());
+            trainee.setLastName(traineeCredentialGenerator.getLastName());
+            trainee.setEmail(traineeCredentialGenerator.getEmail());
+            trainee.setPhoneNumber(traineeCredentialGenerator.getPhoneNumber());
+            trainee.setPassword(passwordEncoder.encode(traineeCredentialGenerator.getPassword()));
+            trainee.setUserId(traineeCredentialGenerator.getUserId());
+            traineeRepository.save(trainee);
+        }
+        return trainee;
+    }
+
+    @Override
+    public String delete(String email) {
+        TraineeCredentialGenerator trainee=traineeRepository.findByEmail(email);
+       if(trainee!=null){
+           traineeRepository.delete(trainee);
+           return "trainee deleted successfully";
+       }
+        return null;
+    }
+
+    @Override
+    public Map<String, Long> countOfTrainers(String jwt) {
+        Map<String,Long> map=new HashMap<>();
+        long trainersCount=traineeRepository.findAll().size();
+        map.put("trainersCount",trainersCount);
+        return map;
     }
 
     public List<TraineeCredentialGenerator> getAllTrainees(){

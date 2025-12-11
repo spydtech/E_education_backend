@@ -23,4 +23,8 @@ public class EmployeeService {
         } while (employeeRepository.existsByEmployeeId(userId));
         return userId;
     }
+
+    public Long getEmployeesCount(){
+        return (long) employeeRepository.findAll().size();
+    }
 }

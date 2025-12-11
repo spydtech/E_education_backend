@@ -22,12 +22,12 @@ public class EmailService {
         mailSender.send(message);
     }
 
-    public void sendEmployeeID(String toEmail, String employeeId) throws MessagingException {
+    public void sendEmployeeID(String toEmail, String employeeId, String password) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
         helper.setTo(toEmail);
         helper.setSubject("Employee Registration Is Successfully Completed");
-        helper.setText("Your Employee ID : " + employeeId);
+        helper.setText("Your Employee ID for Login is: "+employeeId+" Your password for Login is: " + password);
         mailSender.send(message);
     }
 

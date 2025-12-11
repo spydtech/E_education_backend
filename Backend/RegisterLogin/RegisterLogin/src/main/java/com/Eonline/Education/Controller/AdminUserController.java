@@ -1,7 +1,6 @@
 package com.Eonline.Education.Controller;
 
 import com.Eonline.Education.Service.UserService;
-import com.Eonline.Education.exceptions.UserException;
 import com.Eonline.Education.modals.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,7 +22,7 @@ public class AdminUserController {
     private UserService userService;
 
     @GetMapping("/users")
-    public ResponseEntity<List<User>> getAllUsers(@RequestHeader("Authorization") String jwt) throws UserException {
+    public ResponseEntity<List<User>> getAllUsers(@RequestHeader("Authorization") String jwt)  {
 
         System.out.println("/api/users/profile");
         List<User> user=userService.findAllUsers();

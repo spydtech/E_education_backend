@@ -34,6 +34,17 @@ public class CustomerTraineeDetails implements UserDetailsService {
 
         return new org.springframework.security.core.userdetails.User(trainee.getUserId(), trainee.getPassword(), authorities);
     }
+
+    public UserDetails loadUserByEmail(String email) {
+        TraineeCredentialGenerator trainee = traineeRepository.findByEmail(email);
+
+        if (trainee == null) {
+            throw new UsernameNotFoundException("Trainee not found with Email: " + email);
+        }
+
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        return new org.springframework.security.core.userdetails.User(trainee.getEmail(), trainee.getPassword(), authorities);
+    }
 }
 
 

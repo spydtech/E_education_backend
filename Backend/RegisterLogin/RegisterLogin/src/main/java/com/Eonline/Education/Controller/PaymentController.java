@@ -23,13 +23,25 @@ public class PaymentController {
     private PaymentService paymentService;
 
     @PostMapping("/store-payment")
-    public void storePayment(@RequestBody PaymentRequest paymentRequest) {
-        paymentService.processPayment(paymentRequest);
+    public Payment storePayment(@RequestBody PaymentRequest paymentRequest) {
+        return paymentService.processPayment(paymentRequest);
     }
     @GetMapping("/all")
     public ResponseEntity<List<Payment>> getAllPayments() {
         try {
             List<Payment> payments = paymentService.getAllPayments();
+            return new ResponseEntity<>(payments, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace(); // Log the exact error in the console
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    @GetMapping("/getAll/paymentHistory")
+    public ResponseEntity<List<Payment>> getUserPaymentHistory(@RequestHeader("Authorization") String jwt) {
+        try {
+            List<Payment> payments = paymentService.getUserPaymentHistory(jwt);
             return new ResponseEntity<>(payments, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -44,6 +56,9 @@ public class PaymentController {
             Map<String, Object> userCourseMap = new HashMap<>();
             userCourseMap.put("userName", payment.getUserName());
             userCourseMap.put("email",payment.getUserEmail());
+            userCourseMap.put("courseDetails",payment.getCourseDetails());
+            userCourseMap.put("createdAt",payment.getCreatedAt());
+            userCourseMap.put("userId",payment.getUserId());
 
             try {
                 Map<String, Object> courseDetails = objectMapper.readValue(payment.getCourseDetails(), new TypeReference<Map<String, Object>>() {});

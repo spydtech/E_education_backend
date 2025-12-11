@@ -14,7 +14,7 @@ public class CourseCompletionServiceImpl implements CourseCompletionService{
     @Autowired
     CourseCompletionRepository courseCompletionRepository;
     public CourseCompletion createCourseCompletion(CourseCompletion courseCompletion){
-       // courseCompletion.setIssueDate(LocalDate.now());
+        // courseCompletion.setIssueDate(LocalDate.now());
         return courseCompletionRepository.save(courseCompletion);
     }
 

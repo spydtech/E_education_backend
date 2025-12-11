@@ -17,20 +17,33 @@ public class CalendarEvent {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String title;
-    private String Date;
+
+    @Column(name = "event_date")
+    private String date;
+
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String adminEmail;
     private String meetingLink;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_email", referencedColumnName = "email")
+    @OneToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "trainee_email", referencedColumnName = "email")
+    // Note: If TraineeCredentialGenerator is not needed, you can remove this field
+    // or fix the circular reference
+    @OneToOne
+    @JoinColumn(name = "trainee_id", referencedColumnName = "id")
     private TraineeCredentialGenerator traineeCredentialGenerator;
 
+    // Helper method to get user email
+    public String getUserEmail() {
+        return user != null ? user.getEmail() : null;
+    }
 
+    public CalendarEvent orElseThrow(Object o) {
+        return null;
+    }
 }

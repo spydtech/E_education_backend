@@ -1,6 +1,7 @@
 package com.Eonline.Education.Controller;
 
 import com.Eonline.Education.Service.NotificationService;
+import com.Eonline.Education.Service.UserProfileUpdateRequest;
 import com.Eonline.Education.Service.UserService;
 import com.Eonline.Education.modals.Account;
 import com.Eonline.Education.modals.Education;
@@ -41,6 +42,16 @@ public class UserController {
     public ResponseEntity<UserProfileResponse> getUserProfileHandler(@RequestHeader("Authorization") String jwt) throws Exception {
         UserProfileResponse user = userService.findUserProfile(jwt);
         return new ResponseEntity<>(user, HttpStatus.ACCEPTED);
+    }
+
+
+    @PutMapping("/profile/update")
+    public ResponseEntity<UserProfileResponse> updateUserProfile(
+            @RequestHeader("Authorization") String jwt,
+            @RequestBody UserProfileUpdateRequest updateRequest) throws Exception {
+
+        UserProfileResponse updatedUser = userService.updateUserProfile(jwt, updateRequest);
+        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
 
     @GetMapping("/getAccountDetail/{emailid}")

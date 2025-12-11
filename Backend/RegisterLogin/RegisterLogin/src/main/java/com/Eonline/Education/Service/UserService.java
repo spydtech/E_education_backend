@@ -65,4 +65,7 @@ public interface UserService {
 
 
     Map<String, Long> activeInactiveCount();
+
+    // ADD THIS METHOD
+    UserProfileResponse updateUserProfile(String jwt, UserProfileUpdateRequest updateRequest) throws Exception;
 }

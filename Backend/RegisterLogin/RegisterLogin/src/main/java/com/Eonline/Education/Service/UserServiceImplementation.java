@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -41,6 +43,77 @@ public class UserServiceImplementation implements UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    // ADD THIS NEW METHOD FOR PROFILE UPDATE
+    @Override
+    public UserProfileResponse updateUserProfile(String jwt, UserProfileUpdateRequest updateRequest) throws Exception {
+        // Extract email from JWT token
+        String email = jwtTokenProvider.getEmailFromJwtToken(jwt);
+
+        // Find user by email
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserException("User not found with email: " + email));
+
+        // Update user fields
+        if (updateRequest.getFirstName() != null) {
+            user.setFirstName(updateRequest.getFirstName());
+        }
+        if (updateRequest.getLastName() != null) {
+            user.setLastName(updateRequest.getLastName());
+        }
+        if (updateRequest.getPhoneNumber() != null) {
+            user.setPhoneNumber(updateRequest.getPhoneNumber());
+        }
+        if (updateRequest.getLocation() != null) {
+            user.setLocation(updateRequest.getLocation());
+        }
+        if (updateRequest.getDateOfBirth() != null && !updateRequest.getDateOfBirth().isEmpty()) {
+            try {
+                // Convert string date to LocalDate
+                LocalDate dateOfBirth = LocalDate.parse(updateRequest.getDateOfBirth());
+                user.setDateOfBirth(dateOfBirth);
+            } catch (Exception e) {
+                throw new UserException("Invalid date format. Use yyyy-MM-dd");
+            }
+        }
+        if (updateRequest.getWebsite() != null) {
+            user.setWebsite(updateRequest.getWebsite());
+        }
+        if (updateRequest.getGender() != null) {
+            user.setGender(updateRequest.getGender());
+        }
+
+        // Save updated user
+        User updatedUser = userRepository.save(user);
+
+        // Convert to UserProfileResponse
+        return userToProfileResponse(updatedUser);
+    }
+
+    // UPDATE THIS METHOD TO INCLUDE ALL FIELDS
+    private UserProfileResponse userToProfileResponse(User user) {
+        UserProfileResponse response = new UserProfileResponse();
+        response.setId(user.getId());
+        response.setFirstName(user.getFirstName());
+        response.setLastName(user.getLastName());
+        response.setEmail(user.getEmail());
+        response.setRole(user.getRole());
+        response.setProfilePhoto(user.getProfilePhoto());
+        response.setStatus(user.getStatus());
+        response.setPhoneNumber(user.getPhoneNumber());
+        response.setLocation(user.getLocation());
+        response.setWebsite(user.getWebsite());
+        response.setGender(user.getGender());
+
+        // Format date of birth if exists
+        if (user.getDateOfBirth() != null) {
+            response.setDateOfBirth(user.getDateOfBirth().toString());
+        }
+
+        return response;
+    }
+
+    // Rest of your existing methods remain the same...
+
     @Override
     public User findUserById(Long userId) throws UserException {
         return userRepository.findById(userId)
@@ -50,7 +123,6 @@ public class UserServiceImplementation implements UserService {
     @Override
     public User findUserProfileByJwt(String jwt) throws UserException {
         String email = jwtTokenProvider.getEmailFromJwtToken(jwt);
-        // ✅ FIXED: Handle Optional properly
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserException("User not exist with email " + email));
     }
@@ -62,13 +134,11 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     public void deleteUser(Long userId) {
-        // Implementation for delete user
         userRepository.deleteById(userId);
     }
 
     @Override
     public ResponseEntity<?> getAccountDetails(String email) {
-        // ✅ FIXED: Handle Optional properly
         User userDetails = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
@@ -94,7 +164,6 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     public ResponseEntity<?> updateAccountDetails(String email, Account userAccount) {
-        // ✅ FIXED: Handle Optional properly
         User currentUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
@@ -128,7 +197,6 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     public ResponseEntity<?> updateEducationDetails(String email, Education userEducation) {
-        // ✅ FIXED: Handle Optional properly
         User currentEduUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
@@ -160,7 +228,6 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     public ResponseEntity<?> getEducationDetails(String email) {
-        // ✅ FIXED: Handle Optional properly
         User userEducationDetails = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
@@ -189,7 +256,6 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     public User findByEmail(String email) {
-        // ✅ FIXED: Handle Optional properly
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
     }
@@ -225,7 +291,6 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     public String updatePassword(String email, PasswordChange passwordChange) {
-        // ✅ FIXED: Handle Optional properly
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
@@ -254,7 +319,6 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     public String saveFile(String email, MultipartFile file, String type) throws IOException {
-        // ✅ FIXED: Handle Optional properly
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
@@ -270,7 +334,6 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     public byte[] getProfilePhoto(String email) {
-        // ✅ FIXED: Handle Optional properly
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
         return user.getProfilePhoto();
@@ -278,7 +341,6 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     public byte[] getCoverPhoto(String email) {
-        // ✅ FIXED: Handle Optional properly
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
         return user.getCoverPhoto();
@@ -287,7 +349,6 @@ public class UserServiceImplementation implements UserService {
     @Override
     public ResponseEntity<Account> accountSave(String jwt, Account account) {
         String email = jwtTokenProvider.getEmailFromJwtToken(jwt);
-        // ✅ FIXED: Handle Optional properly
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
@@ -321,22 +382,9 @@ public class UserServiceImplementation implements UserService {
     @Override
     public UserProfileResponse findUserProfile(String jwt) {
         String email = jwtTokenProvider.getEmailFromJwtToken(jwt);
-        // ✅ FIXED: Handle Optional properly
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
         return userToProfileResponse(user);
-    }
-
-    private UserProfileResponse userToProfileResponse(User user) {
-        return new UserProfileResponse(
-                user.getId(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getEmail(),
-                user.getRole(),
-                user.getProfilePhoto(),
-                user.getStatus()
-        );
     }
 
     private AdminProfileResponse userToAdminDetails(User user, MultipartFile file) {

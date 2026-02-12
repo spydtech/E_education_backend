@@ -1,0 +1,28 @@
+# backend-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: java-backend
+  namespace: e-education-backend
+spec:
+  replicas: 1  
+  selector:
+    matchLabels:
+      app: java-backend
+  template:
+    metadata:
+      labels:
+        app: java-backend
+    spec:
+      containers:
+      - name: java-backend
+        image: spydshasi/e-education:1.0
+        ports:
+        - containerPort: 8082
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"

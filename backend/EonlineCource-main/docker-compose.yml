@@ -1,0 +1,23 @@
+version: '3'
+ 
+services:
+ 
+  frontend:
+    image: jagadishspyd/e-education:1.0
+    container_name: educationfront
+    ports:
+      - "3000:80"  # Map host port 3000 to container port 80
+    networks:
+      - my-network
+    environment:
+      - API_BASE_URL=http://13.126.181.47:8082
+  backend:
+    image: jagadishspyd/e-education:1.0BE
+    container_name: educationback
+    ports:
+      - "8082:8082"
+    networks:
+      - my-network
+networks:
+  my-network:
+    driver: bridge

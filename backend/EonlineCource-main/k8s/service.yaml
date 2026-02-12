@@ -1,0 +1,15 @@
+# backend-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: java-backend-service
+  namespace: e-education-backend
+spec:
+  selector:
+    app: java-backend
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 8082
+  type: ClusterIP

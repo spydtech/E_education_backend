@@ -30,9 +30,9 @@
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="ProjectErrors" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 8
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
   <component name="ProjectId" id="2fBsaeFzM8ItSD9GnBc9VdQGftd" />
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
@@ -45,19 +45,36 @@
   "keyToString": {
     "ASKED_ADD_EXTERNAL_FILES": "true",
     "Application.com.Eonline.Education.RegisterLoginApplication.executor": "Run",
+    "Maven.RegisterLogin [clean,compile].executor": "Run",
+    "Maven.RegisterLogin [clean,install].executor": "Run",
+    "Maven.RegisterLogin [clean].executor": "Run",
+    "Maven.RegisterLogin [install].executor": "Run",
+    "Maven.RegisterLogin [package].executor": "Run",
+    "Maven.RegisterLogin [validate].executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "kotlin-language-version-configured": "true",
     "last_directory_selection": "C:/Users/GANES/Desktop/ECourse/EonlineCource/Backend/RegisterLogin/RegisterLogin/src/test/java",
-    "last_opened_file_path": "C:/Users/SPY D/OneDrive/Desktop/EonlineCource-main/Backend",
-    "settings.editor.selected.configurable": "reference.settings.project.maven.repository.indices"
+    "last_opened_file_path": "C:/Users/SPY D/OneDrive/Desktop/E-education/backend/EonlineCource-main/Backend",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "jvm.logging"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="ExtractSuperBase.RECENT_KEYS">
       <recent name="com.example.RegisterLogin.Configuration" />
     </key>
+  </component>
+  <component name="RunAnythingCache">
+    <option name="myCommands">
+      <command value="mvn clean" />
+      <command value="mvn install" />
+      <command value="mvn clean compile" />
+      <command value="mvn clean install" />
+    </option>
   </component>
   <component name="RunManager" selected="Application.com.Eonline.Education.RegisterLoginApplication">
     <configuration name="RegisterLoginApplication" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
@@ -239,5 +256,9 @@
     <MESSAGE value="payment code updated" />
     <MESSAGE value="payment controller code updated" />
     <option name="LAST_COMMIT_MESSAGE" value="payment controller code updated" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
   </component>
 </project>
